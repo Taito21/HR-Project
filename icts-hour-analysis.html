@@ -585,6 +585,20 @@ dl.facts.inline dd { font-weight: 600; }
 }
 :root[data-theme="dark"] .filters .seg button[aria-pressed="true"] { background: #fff; color: #14325F; }
 
+/* ---------- sick leave ---------- */
+.co.sk { color: var(--brand-red); background: color-mix(in srgb, var(--brand-red) 12%, var(--surface)); }
+.sk-bar .filters-in { padding: 12px 16px; }
+.sk-emp { display: grid; gap: 1px; min-width: 14ch; }
+.sk-emp .badge { justify-self: start; margin-top: 2px; }
+.sortb { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.sortb:hover { color: var(--brand); }
+.sk-foot, .sk-caveat { padding: 10px 18px 14px; }
+.sk-caveat { padding: 10px 0 0; }
+.sk-dq { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1100px) { .sk-dq { grid-template-columns: 320px minmax(0, 1fr); } .sk-dq > .panel-b { border-right: 1px solid var(--line); } }
+.sk-dq-t { max-height: 520px; overflow: auto; }
+.sk-dq-t th { position: sticky; top: 0; z-index: 1; }
+@media (max-width: 1250px) { .t.sk-emp-t .mcol { display: none; } }
 </style>
 </head>
 <body>
@@ -774,6 +788,7 @@ function classify(fileName, sheetNames) {
     if (m && +m[1] >= 1 && +m[1] <= 12) return { kind: 'payroll', sheet: print, month: +m[1], company: m[2].toUpperCase() };
     return { kind: 'payroll-unnamed', sheet: print, guess: guessPayroll(base) };
   }
+  if (isSickBook(sheetNames)) return { kind: 'sick', sheets: sickCandidates(sheetNames) };
   return { kind: 'unknown' };
 }
 // Best guess for an oddly named payroll file, to prefill the inline form
@@ -984,6 +999,154 @@ function parseManpower(wb, sheets) {
   return out;
 }
 
+/* ---------- sick leave workbook ------------------------------------------
+   One sheet per location and year (e.g. ΛΑΡΝΑΚΑ 2026): EMPLOYEE CODE, NAME,
+   ΕΤΑΙΡΕΙΑ, then for each month a FROM/TILL pair, a second FROM/TILL pair and
+   a TOTAL ABSENCES column. Columns are found by header text, not position.
+   Nothing is corrected: questionable entries are reported in `issues`. */
+const SICK_AUX = ['SICKLEAVE', 'RESULTS', 'FORMULAS'].map(normHeader);
+const MONTH_KEYS = MONTHS.map(m => normHeader(m));
+const FROM_WORDS = new Set(['FROM', 'ΑΠΟ'].map(normHeader)), TILL_WORDS = new Set(['TILL', 'TO', 'UNTIL', 'ΕΩΣ', 'ΜΕΧΡΙ'].map(normHeader));
+const isSickBook = names => names.some(n => normHeader(n).startsWith('SICKLEAVE'));
+const sickCandidates = names => names.filter(n => !SICK_AUX.some(a => normHeader(n).startsWith(a)));
+function sickHeaderRow(ws) {
+  const rg = range(ws);
+  for (let r = rg.s.r; r <= Math.min(rg.e.r, rg.s.r + 8); r++)
+    for (let c = rg.s.c; c <= Math.min(rg.e.c, rg.s.c + 12); c++)
+      if (normHeader(cell(ws, r, c)) === 'EMPLOYEE CODE') {
+        for (let k = c; k <= rg.e.c; k++) if (normHeader(cell(ws, r, k)) === 'JANUARY FROM') return r;
+      }
+  return -1;
+}
+function findSickSheet(wb, names) {
+  for (const n of names) { const ws = wb.Sheets[n]; if (ws && sickHeaderRow(ws) >= 0) return n; }
+  return null;
+}
+function showVal(v) {
+  if (v instanceof Date) { const d = toDay(v); return d == null ? 'invalid date' : dayISO(d).split('-').reverse().join('/'); }
+  return String(v).trim() === '' ? '(spaces)' : String(v).trim();
+}
+
+function parseSick(wb, sheet) {
+  const ws = wb.Sheets[sheet], rg = range(ws), hr = sickHeaderRow(ws);
+  const mY = /^(.*?)[\s_-]*((?:19|20)\d\d)\s*$/.exec(String(sheet).trim());
+  const out = { sheet, location: ((mY ? mY[1] : sheet) || sheet).trim(), sheetYear: mY ? +mY[2] : null, dataYear: null,
+    people: [], issues: [], missing: [], blankRows: 0, footerRows: 0, periods: 0, excluded: 0, noCode: 0, noName: 0, lastDay: null };
+  if (hr < 0) { out.error = 'No header row with EMPLOYEE CODE and JANUARY FROM was found.'; return out; }
+  const cols = findCols(ws, hr, { code: ['EMPLOYEE CODE', 'ΚΩΔΙΚΟΣ'], name: ['NAME', 'ΟΝΟΜΑ', 'ΟΝΟΜΑΤΕΠΩΝΥΜΟ'], div: ['ΕΤΑΙΡΕΙΑ', 'COMPANY', 'DIVISION'] });
+  for (const [k, l] of [['code', 'EMPLOYEE CODE'], ['name', 'NAME'], ['div', 'ΕΤΑΙΡΕΙΑ']]) if (cols[k] < 0) out.missing.push(l);
+
+  // month blocks: FROM opens a pair, the next TILL closes it; the bare month name is TOTAL ABSENCES
+  const blocks = MONTHS.map((_, i) => ({ m: i + 1, pairs: [], total: -1 }));
+  let lastMonthCol = -1;
+  for (let c = rg.s.c; c <= rg.e.c; c++) {
+    const h = normHeader(cell(ws, hr, c)); if (!h) continue;
+    const mi = MONTH_KEYS.findIndex(k => h === k || h.startsWith(k + ' '));
+    if (mi < 0) continue;
+    const b = blocks[mi], rest = h.slice(MONTH_KEYS[mi].length).trim();
+    lastMonthCol = c;
+    if (!rest) { if (b.total < 0) b.total = c; continue; }
+    if (FROM_WORDS.has(rest)) b.pairs.push({ from: c, till: -1 });
+    else if (TILL_WORDS.has(rest)) { const open = b.pairs.find(p => p.till < 0); if (open) open.till = c; else b.pairs.push({ from: -1, till: c }); }
+  }
+  blocks.forEach(b => {
+    if (!b.pairs.length) out.missing.push(MONTHS[b.m - 1] + ' FROM/TILL');
+    b.pairs.forEach(p => { if (p.from < 0 || p.till < 0) out.missing.push(MONTHS[b.m - 1] + (p.from < 0 ? ' FROM' : ' TILL') + ' (unpaired column)'); });
+  });
+  const known = new Set([cols.code, cols.name, cols.div].filter(c => c >= 0));
+  blocks.forEach(b => { if (b.total >= 0) known.add(b.total); b.pairs.forEach(p => { known.add(p.from); known.add(p.till); }); });
+  const extra = []; for (let c = rg.s.c; c <= rg.e.c; c++) if (!known.has(c) && c > (cols.div >= 0 ? cols.div : 2)) extra.push(c);
+
+  const issue = (lv, row, cells, msg, effect) => out.issues.push({ lv, row, cells, msg, effect });
+  const pending = [], blanks = [];
+  for (let r = hr + 1; r <= rg.e.r; r++) {
+    const nameV = cols.name >= 0 ? cell(ws, r, cols.name) : undefined;
+    if (/PER MONTH$/.test(normHeader(nameV))) {
+      out.footerRows++;
+      const broken = blocks.some(b => b.total >= 0 && /^#/.test(String(cell(ws, r, b.total) || '')));
+      if (broken) issue('info', r + 1, '', `Summary row “${cleanText(nameV)}” shows a formula error (#REF!).`, 'Not used: totals are worked out from the dates');
+      continue;
+    }
+    const codeV = cols.code >= 0 ? cell(ws, r, cols.code) : undefined, divV = cols.div >= 0 ? cell(ws, r, cols.div) : undefined;
+    const anyMonth = blocks.some(b => [b.total, ...b.pairs.flatMap(p => [p.from, p.till])].some(c => c >= 0 && !isBlank(cell(ws, r, c))));
+    const anyExtra = extra.some(c => !isBlank(cell(ws, r, c)));
+    if (isBlank(codeV) && isBlank(nameV) && isBlank(divV) && !anyMonth && !anyExtra) { blanks.push(r); continue; }
+    const p = { row: r + 1, code: isBlank(codeV) ? '' : codeText(codeV), codeKey: digitsKey(codeV), name: cleanText(nameV),
+      div: divisionOf(divV), divRaw: cleanText(divV), periods: [], abs: {} };
+    if (!p.code) out.noCode++;
+    if (!p.name) out.noName++;
+    for (const b of blocks) {
+      for (const pr of b.pairs) {
+        const a = pr.from >= 0 ? cell(ws, r, pr.from) : undefined, z = pr.till >= 0 ? cell(ws, r, pr.till) : undefined;
+        const ea = isBlank(a), ez = isBlank(z);
+        if (ea && ez) continue;
+        const cells = [pr.from, pr.till].filter(c => c >= 0).map(c => col(c) + (r + 1)).join('–');
+        const lbl = MONTHS[b.m - 1];
+        if (ea || ez) { issue('warn', r + 1, cells, `${lbl}: only a ${ea ? 'TILL' : 'FROM'} entry (${showVal(ea ? z : a)}), the other is blank.`, 'Excluded'); out.excluded++; continue; }
+        const da = toDay(a), dz = toDay(z);
+        if (da == null || dz == null) {
+          const bad = da == null ? a : z;
+          issue('bad', r + 1, cells, `${lbl}: “${showVal(bad)}” is ${typeof bad === 'number' ? 'a number' : 'text'}, not a date value.`, 'Excluded'); out.excluded++; continue;
+        }
+        if (dz < da) { issue('bad', r + 1, cells, `${lbl}: TILL ${showVal(z)} is before FROM ${showVal(a)}.`, 'Excluded'); out.excluded++; continue; }
+        const per = { from: da, till: dz, m: b.m, cells, a, z };
+        p.periods.push(per); pending.push({ p, per });
+      }
+      if (b.total >= 0) {
+        const v = cell(ws, r, b.total);
+        if (!isBlank(v)) {
+          if (typeof v === 'number') p.abs[b.m] = (p.abs[b.m] || 0) + v;
+          else issue('warn', r + 1, col(b.total) + (r + 1), `${MONTHS[b.m - 1]} TOTAL ABSENCES holds ${v instanceof Date ? 'a date' : 'text'} (${showVal(v)}), not a number of days.`, 'Not read');
+        }
+      }
+    }
+    extra.forEach(c => { const v = cell(ws, r, c); if (!isBlank(v)) issue('info', r + 1, col(c) + (r + 1), `Note outside the month columns: “${showVal(v)}”.`, 'Not read'); });
+    out.people.push(p);
+  }
+
+  const lastRow = out.people.length ? out.people[out.people.length - 1].row - 1 : -1;
+  out.blankRows = blanks.filter(r => r < lastRow).length;
+  // the year the file covers = the most common year among its dates
+  const yc = {}; pending.forEach(({ per }) => { const y = dayParts(per.from)[0]; yc[y] = (yc[y] || 0) + 1; });
+  out.dataYear = +Object.keys(yc).sort((a, b) => yc[b] - yc[a])[0] || out.sheetYear;
+  if (out.sheetYear && out.dataYear && out.sheetYear !== out.dataYear)
+    issue('info', null, '', `The sheet is named ${sheet} but its dates are in ${out.dataYear}.`, `Read as ${out.dataYear}`);
+  for (const { p, per } of pending) {
+    const [ya, ma] = dayParts(per.from), [yz, mz] = dayParts(per.till);
+    if (ya !== out.dataYear || yz !== out.dataYear) {
+      issue('bad', p.row, per.cells, `${MONTHS[per.m - 1]}: ${showVal(per.a)} to ${showVal(per.z)} is outside ${out.dataYear}.`, 'Excluded');
+      per.excluded = true; out.excluded++; continue;
+    }
+    if (ma !== per.m || mz !== per.m) {
+      const n = per.till - per.from + 1;
+      issue('warn', p.row, per.cells, `Entered under ${MONTHS[per.m - 1]}, but the dates are ${showVal(per.a)} to ${showVal(per.z)} (${n} ${n === 1 ? 'day' : 'days'}).`, 'Counted on its actual dates');
+    }
+    out.periods++;
+    if (out.lastDay == null || per.till > out.lastDay) out.lastDay = per.till;
+    const today = todayDay();
+    if (per.till > today) { const n = per.till - Math.max(per.from, today + 1) + 1;
+      issue('info', p.row, per.cells, `${showVal(per.a)} to ${showVal(per.z)} runs past today: ${n} ${n === 1 ? 'day is' : 'days are'} still to come.`, 'Counted as recorded'); }
+  }
+  // overlaps and duplicate codes
+  for (const p of out.people) {
+    const ok = p.periods.filter(x => !x.excluded).sort((a, b) => a.from - b.from);
+    for (let i = 1; i < ok.length; i++) if (ok[i].from <= ok[i - 1].till)
+      issue('warn', p.row, ok[i - 1].cells + ', ' + ok[i].cells, `Periods overlap: ${showVal(ok[i - 1].a)}–${showVal(ok[i - 1].z)} and ${showVal(ok[i].a)}–${showVal(ok[i].z)}.`, 'Overlapping days counted once');
+  }
+  const byCode = {};
+  out.people.forEach(p => { if (p.codeKey) (byCode[p.codeKey] || (byCode[p.codeKey] = [])).push(p); });
+  for (const k in byCode) if (byCode[k].length > 1) {
+    const names = new Set(byCode[k].map(p => nameKey(p.name)).filter(Boolean));
+    issue('warn', byCode[k][0].row, '', `Employee code ${byCode[k][0].code} is on rows ${byCode[k].map(p => p.row).join(', ')}${names.size > 1 ? ' with different names' : ''}.`, 'Kept as separate rows');
+  }
+  if (out.noCode || out.noName) {
+    const all = out.noCode === out.people.length && out.noName === out.people.length;
+    issue(all ? 'warn' : 'info', null, '', all ? `No employee codes or names are filled in (${out.people.length} rows).` :
+      `${out.noCode} of ${out.people.length} rows have no employee code and ${out.noName} have no name.`, 'Shown by row number; cannot be matched to HR');
+  }
+  return out;
+}
+
 /* ---------- reading an ArrayBuffer ------------------------------------- */
 
 function peekSheets(buf) {
@@ -998,6 +1161,7 @@ root.Core = {
   fold, normHeader, normLoose, searchKey, nameKey, isBlank, num, numComma, digitsKey, codeText, cleanText,
   DAY, dayOf, toDay, dayParts, dayISO, todayDay, monthEnd, daysInMonth, MONTHS, MON,
   findCols, classify, guessPayroll, parsePayroll, parseHR, parseManpower, peekSheets, readSheets,
+  parseSick, findSickSheet, isSickBook, sickCandidates,
   HR_SHEETS, MP_SHEETS, DIVS,
 };
 if (typeof module !== 'undefined') module.exports = root.Core;
@@ -1294,6 +1458,8 @@ const fresh = () => ({
   payroll: {},          // 'AS-3' → {fileId, month, company, rows, parsedHours, totalsHours, missing}
   hr: null,             // {fileId, hires, exits, stats, missing}
   mp: null,             // {fileId, sheets, months, stations, divisions}
+  sick: [],             // one per sick leave sheet: {fileId, location, dataYear, people, issues…}
+  sk: { year: 0, loc: '', div: '', from: 1, to: 0, q: '', sort: { key: 'days', dir: -1 }, all: false, more: false },
   pendingBufs: {},      // fileId → ArrayBuffer, only for payroll files awaiting month/company
   busy: null,           // {step, done, total, file}
   view: 'files',
@@ -1314,7 +1480,7 @@ let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light
 const logoSrc = (window.ICTS_LOGO || '').trim();
 
 /* ---------- ingest pipeline: payroll → HR → merge → derive ---------- */
-const STEPS = [['read', 'Reading files'], ['payroll', 'Payroll'], ['hr', 'Hirings & departures'], ['merge', 'Merge'], ['derive', 'Derive']];
+const STEPS = [['read', 'Reading files'], ['payroll', 'Payroll'], ['hr', 'Hirings & departures'], ['sick', 'Sick leave'], ['merge', 'Merge'], ['derive', 'Derive']];
 
 async function ingest(list) {
   if (!window.XLSX || !list.length) return;   // the upload screen already explains a missing reader
@@ -1378,7 +1544,28 @@ async function ingest(list) {
     } catch (e) { Object.assign(it.entry, { status: 'error', note: 'Could not read the manpower sheets (' + (e.message || e) + ').' }); }
     S.busy.done++;
   }
-  items.filter(i => i.cls.kind === 'unknown').forEach(i => { i.entry.status = 'unknown'; });
+  const sks = items.filter(i => i.cls.kind === 'sick' || i.cls.kind === 'unknown');
+  S.busy = { step: 'sick', done: 0, total: sks.length, file: '' };
+  for (const it of sks) {
+    S.busy.file = it.entry.name; renderProgress(); await tick(); if (g !== gen) return;
+    try {
+      const names = it.cls.kind === 'sick' ? it.cls.sheets : C.peekSheets(it.buf);
+      const wb = C.readSheets(it.buf, names, true);
+      const sheet = C.findSickSheet(wb, names);
+      if (!sheet) { if (it.cls.kind === 'sick') Object.assign(it.entry, { status: 'error', note: 'No sheet with EMPLOYEE CODE, NAME and JANUARY FROM headers was found.' }); continue; }
+      const r = C.parseSick(wb, sheet);
+      Object.assign(it.entry, { kind: 'sick', cls: { kind: 'sick' } });
+      if (r.error) { Object.assign(it.entry, { status: 'error', note: r.error }); continue; }
+      const old = S.sick.find(b => b.location === r.location && b.dataYear === r.dataYear);
+      if (old) { markReplaced(old.fileId, it.entry); S.sick = S.sick.filter(b => b !== old); }
+      skPrepare(r);
+      S.sick.push(Object.assign(r, { fileId: it.entry.id }));
+      const serious = r.issues.filter(x => x.lv !== 'info').length;
+      Object.assign(it.entry, { status: serious ? 'warn' : 'ok', note: r.location + ' ' + (r.dataYear || '') + (serious ? ', ' + plural(serious, 'entry', 'entries') + ' to check' : '') });
+    } catch (e) { Object.assign(it.entry, { status: 'error', note: 'Could not read the sick leave sheet (' + (e.message || e) + ').' }); }
+    finally { S.busy.done++; }
+  }
+  items.filter(i => i.entry.kind === 'unknown').forEach(i => { i.entry.status = 'unknown'; });
   items.length = 0;   // drop buffers
 
   await rebuild();
@@ -1410,7 +1597,7 @@ async function rebuild() {
   if (!S.landed && Object.keys(S.payroll).length) {
     S.landed = true;
     S.view = warnings().some(w => w[0] !== 'info') ? 'files' : 'overview';
-  }
+  } else if (!S.landed && S.sick.length) { S.landed = true; S.view = 'sick'; }
   render();
 }
 
@@ -1439,6 +1626,7 @@ function removeFile(id) {
   for (const k in S.payroll) if (S.payroll[k].fileId === id) delete S.payroll[k];
   if (S.hr && S.hr.fileId === id) S.hr = null;
   if (S.mp && S.mp.fileId === id) S.mp = null;
+  S.sick = S.sick.filter(b => b.fileId !== id);
   if (!S.files.length) { clearAll(); return; }
   rebuild();
 }
@@ -1515,8 +1703,15 @@ function warnings() {
   }
   const pend = S.files.filter(f => f.status === 'pending').length;
   if (pend) out.unshift(['warn', plural(pend, 'payroll file needs', 'payroll files need') + ' a month and company before it can be counted.']);
+  for (const b of S.sick) {
+    const f = S.files.find(x => x.id === b.fileId), label = f ? f.name : b.location;
+    const n = b.issues.filter(i => i.lv !== 'info').length;
+    if (b.noCode === b.people.length && b.noName === b.people.length) out.push(['warn', label + ' (' + b.sheet + '): no employee codes or names are filled in, so employees are shown by sheet row and can\'t be matched to HR.']);
+    if (n) out.push(['warn', label + ' (' + b.sheet + '): ' + plural(n, 'sick leave entry needs', 'sick leave entries need') + ' checking. They are listed under Data quality on the Sick leave tab.']);
+    if (b.missing.length) out.push(['info', label + ' is missing: ' + b.missing.join(', ') + '.']);
+  }
   const unk = S.files.filter(f => f.status === 'unknown');
-  unk.forEach(f => out.push(['warn', f.name + ' was not recognised: it has no Print sheet, and not the sheets of the HR or manpower workbooks.']));
+  unk.forEach(f => out.push(['warn', f.name + ' was not recognised: it has no Print sheet, and not the sheets of the HR, manpower or sick leave workbooks.']));
   return out;
 }
 
@@ -1536,7 +1731,7 @@ function showUpload() {
     <div class="up-grid">
       <section>
         <h1>Employee hour analysis</h1>
-        <p class="lede">Hours by person, department and company from the AS and BX payroll exports, joined to the hirings and departures workbook.</p>
+        <p class="lede">Hours by person, department and company from the AS and BX payroll exports, joined to the hirings and departures workbook. Sick leave by employee and month from the sick leave workbooks.</p>
         <div class="year-row">
           <label for="year">Year</label>
           <input id="year" type="number" min="2000" max="2100" value="${S.year}">
@@ -1544,7 +1739,7 @@ function showUpload() {
         </div>
         <div class="drop" id="drop">
           <strong>Drop this year’s files here</strong>
-          <p>AS and BX payroll for each month (<b>1as.xlsx</b>, <b>1bx.xlsx</b> …), the latest ΠΡΟΣΛΗΨΕΙΣ & ΑΠΟΧΩΡΗΣΕΙΣ workbook, and the manpower report if you have it. All at once is fine.</p>
+          <p>AS and BX payroll for each month (<b>1as.xlsx</b>, <b>1bx.xlsx</b> …), the latest ΠΡΟΣΛΗΨΕΙΣ & ΑΠΟΧΩΡΗΣΕΙΣ workbook, the manpower report if you have it, and the sick leave workbook for each location. All at once is fine.</p>
           <div class="drop-actions">
             <button class="btn primary" data-act="pick">${ICON.plus}Choose files</button>
           </div>
@@ -1586,6 +1781,7 @@ function boardHTML(prev) {
     <div class="slots">
       <div class="slot ${S.hr ? 'ok' : 'req'}"><b>Hirings & departures</b><span>${S.hr ? esc(hrF ? hrF.name : 'loaded') : 'Needed for status and the HR views'}</span></div>
       <div class="slot ${S.mp ? 'ok' : ''}"><b>Manpower report</b><span>${S.mp ? esc(mpF ? mpF.name : 'loaded') : 'Optional, for comparison'}</span></div>
+      <div class="slot ${S.sick.length ? 'ok' : ''}"><b>Sick leave</b><span>${S.sick.length ? esc(S.sick.map(b => b.location + ' ' + (b.dataYear || '')).join(', ')) : 'One workbook per location'}</span></div>
     </div>
     <div class="legend"><span><i class="ok"></i>Read, matches Totals</span><span><i class="warn"></i>Read, check Totals</span><span><i class="gap"></i>Missing between loaded months</span></div>
   </div>`;
@@ -1754,7 +1950,7 @@ function monthBars(opts) {
         acc += v; parts.push(s.label + ' ' + fmtH(v));
       });
       if (opts.topLabels && opts.topLabels[m] && band >= 44) g += `<text x="${cx}" y="${y(acc) - 6}" class="ax bar-l" text-anchor="middle">${esc(opts.topLabels[m])}</text>`;
-      const tip = C.MONTHS[m - 1] + ': ' + fmtH(sums[i]) + ' h' + (series.length > 1 && parts.length ? '\n' + parts.join('\n') : '') + (opts.tipExtra && opts.tipExtra[m] ? '\n' + opts.tipExtra[m] : '');
+      const tip = C.MONTHS[m - 1] + ': ' + fmtH(sums[i]) + (opts.unit || ' h') + (series.length > 1 && parts.length ? '\n' + parts.join('\n') : '') + (opts.tipExtra && opts.tipExtra[m] ? '\n' + opts.tipExtra[m] : '');
       g += `<rect x="${L + band * i}" y="${T}" width="${band}" height="${ih}" class="hit" data-tip="${esc(tip)}"/>`;
       g += `<text x="${cx}" y="${h - 7}" class="ax${m === focus ? ' ax-focus' : ''}" text-anchor="middle">${C.MON[m - 1]}</text>`;
     });
@@ -2827,12 +3023,276 @@ document.addEventListener('click', e => {
 });
 
 
+/* ==========================================================================
+   sick.js — the Sick leave tab. Reads S.sick (one entry per location sheet),
+   never the payroll. Days are calendar days, both FROM and TILL included.
+   ========================================================================== */
+const SK_DIVS = ['AIRPORTS', 'BORDER', 'CYPRUS'];
+const SK_COL = { AIRPORTS: 'var(--as)', BORDER: 'var(--bx)', CYPRUS: 'var(--c4)', '': 'var(--line-2)' };
+const fmtDMY = dn => { if (dn == null) return '–'; const [y, m, d] = C.dayParts(dn); return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + '/' + y; };
+function hasSick() { return S.sick.length > 0; }
+function skYears() { return [...new Set(S.sick.map(b => b.dataYear).filter(Boolean))].sort((a, b) => a - b); }
+
+// Per person, once per load: the set of sick days and the spells (runs of consecutive days)
+function skPrepare(b) {
+  for (const p of b.people) {
+    const days = new Set();
+    for (const per of p.periods) if (!per.excluded) for (let d = per.from; d <= per.till; d++) days.add(d);
+    p.days = [...days].sort((x, y) => x - y);
+    p.spells = [];
+    for (const d of p.days) { const s = p.spells[p.spells.length - 1]; if (s && d === s.e + 1) s.e = d; else p.spells.push({ s: d, e: d }); }
+    p.label = p.name || (p.code ? 'Code ' + p.code : 'Row ' + p.row);
+    p.search = C.searchKey([p.name, p.code, 'row ' + p.row].join(' | '));
+  }
+}
+
+// HR link: employee code + division against the Α/Μ codes in the HR workbook. Names are never used.
+let _skLink = null;
+function skLink() {
+  const md = MD();
+  if (!md || !md.hasHR) return null;
+  if (_skLink && _skLink.model === md && _skLink.n === S.sick.length) return _skLink;
+  const idx = new Map();
+  for (const person of md.people) if (person.hr) for (const c of person.hr.codes) {
+    const k = c.division + '|' + c.amKey; const arr = idx.get(k) || []; if (!arr.includes(person)) arr.push(person); idx.set(k, arr);
+  }
+  const map = new Map(); let matched = 0, ambiguous = 0, none = 0, noKey = 0;
+  for (const b of S.sick) for (const p of b.people) {
+    if (!p.codeKey || !p.div) { noKey++; continue; }
+    const hits = idx.get(p.div + '|' + p.codeKey) || [];
+    if (hits.length === 1) { map.set(p, hits[0]); matched++; } else if (hits.length > 1) { map.set(p, 'ambiguous'); ambiguous++; } else none++;
+  }
+  _skLink = { model: md, n: S.sick.length, map, matched, ambiguous, none, noKey };
+  return _skLink;
+}
+
+function skScope() {
+  const years = skYears(), k = S.sk;
+  if (!years.includes(k.year)) k.year = years[years.length - 1];
+  const yr = k.year, books = S.sick.filter(b => b.dataYear === yr);
+  const locs = books.map(b => b.location);
+  if (k.loc && !locs.includes(k.loc)) k.loc = '';
+  const shownBooks = books.filter(b => !k.loc || b.location === k.loc);
+  const divs = SK_DIVS.filter(d => shownBooks.some(b => b.people.some(p => p.div === d)));
+  if (k.div && !divs.includes(k.div)) k.div = '';
+  const lastDay = Math.max(...shownBooks.map(b => b.lastDay || 0)) || null;
+  const [ty, tm] = C.dayParts(C.todayDay());
+  const lastM = Math.min(lastDay ? C.dayParts(lastDay)[1] : 12, yr === ty ? tm : yr < ty ? 12 : 1);
+  if (!k.from || k.from > 12) k.from = 1;
+  if (!k.to) k.to = lastM;
+  if (k.to < k.from) k.to = k.from;
+  const lo = C.dayOf(yr, k.from, 1), hi = C.monthEnd(yr, k.to);
+  const months = []; for (let m = k.from; m <= k.to; m++) months.push(m);
+  const words = C.searchKey(k.q || '').split(' ').filter(Boolean);
+  const rows = []; let listed = 0;
+  for (const b of shownBooks) for (const p of b.people) {
+    if (k.div && p.div !== k.div) continue;
+    listed++;
+    if (words.length && !words.every(w => p.search.includes(w))) continue;
+    const md = new Array(13).fill(0); let days = 0, first = null, last = null;
+    for (const d of p.days) { if (d < lo || d > hi) continue; md[C.dayParts(d)[1]]++; days++; if (first == null) first = d; last = d; }
+    const spells = p.spells.filter(s => s.e >= lo && s.s <= hi);
+    let abs = 0; for (const m of months) abs += p.abs[m] || 0;
+    rows.push({ p, b, md, days, spells: spells.length, spellList: spells, first, last, abs });
+  }
+  return { yr, years, books, shownBooks, locs, divs, lo, hi, months, rows, listed, lastDay, words };
+}
+
+function skMonthly(v) {
+  return v.months.map(m => {
+    const ms = C.dayOf(v.yr, m, 1), me = C.monthEnd(v.yr, m);
+    let days = 0, people = 0, spells = 0; const byDiv = {};
+    for (const r of v.rows) {
+      const d = r.md[m]; if (d) { days += d; people++; byDiv[r.p.div] = (byDiv[r.p.div] || 0) + d; }
+      spells += r.spellList.filter(s => Math.max(s.s, v.lo) >= ms && Math.max(s.s, v.lo) <= me).length;
+    }
+    return { m, days, people, spells, byDiv, avg: people ? days / people : 0, pct: v.listed ? people / v.listed : 0 };
+  });
+}
+
+function skControls(v) {
+  const k = S.sk;
+  const seg = (key, opts) => `<div class="seg" role="group">${opts.map(([val, l]) => `<button data-act="sk-set" data-k="${key}" data-v="${esc(val)}" aria-pressed="${String(k[key]) === String(val)}">${esc(l)}</button>`).join('')}</div>`;
+  const mo = (id, key, sel) => `<select id="${id}" data-sk="${key}">${C.MONTHS.map((n, i) => `<option value="${i + 1}"${i + 1 === sel ? ' selected' : ''}>${n}</option>`).join('')}</select>`;
+  return `<div class="panel sk-bar"><div class="filters-in">
+    ${v.years.length > 1 ? `<div class="fg"><label class="fl" for="sk-year">Year</label><select id="sk-year" data-sk="year">${v.years.map(y => `<option${y === v.yr ? ' selected' : ''}>${y}</option>`).join('')}</select></div>` : ''}
+    ${v.locs.length > 1 ? `<div class="fg"><span class="fl">Location</span>${seg('loc', [['', 'All'], ...v.locs.map(l => [l, l])])}</div>` : ''}
+    <div class="fg"><span class="fl">Division</span>${seg('div', [['', 'All'], ...v.divs.map(d => [d, d[0] + d.slice(1).toLowerCase()])])}</div>
+    <div class="fg"><label class="fl" for="sk-from">From</label>${mo('sk-from', 'from', k.from)}</div>
+    <div class="fg"><label class="fl" for="sk-to">To</label>${mo('sk-to', 'to', k.to)}</div>
+    <div class="fg grow"><label class="fl" for="sk-q">Search</label><input id="sk-q" data-skq type="search" placeholder="Name, code or row" value="${esc(k.q)}" autocomplete="off"></div>
+  </div></div>`;
+}
+
+function skPerson(r, link) {
+  const p = r.p, sub = [p.code && p.name ? 'Code ' + p.code : '', p.name || p.code ? 'Row ' + p.row : ''].filter(Boolean).join(', ');
+  let status = '';
+  if (link) {
+    const h = link.map.get(p);
+    status = h === 'ambiguous' ? '<span class="badge none" title="More than one HR record has this code and division">Ambiguous</span>' : h ? badge(h) : '';
+  }
+  return `<div class="sk-emp"><b>${esc(p.label)}</b>${status}${sub ? `<span class="small muted">${esc(sub)}</span>` : ''}</div>`;
+}
+
+function skEmpColumns(v, link) {
+  const cols = [
+    { k: 'name', l: 'Employee', v: r => r.p.label, html: r => skPerson(r, link), csv: r => r.p.name },
+    { k: 'code', l: 'Employee code', csvOnly: true, v: r => r.p.code },
+    { k: 'row', l: 'Sheet row', csvOnly: true, v: r => r.p.row },
+    { k: 'loc', l: 'Location', v: r => r.b.location, hide: v.locs.length < 2 || S.sk.loc },
+    { k: 'div', l: 'Division', v: r => r.p.div || r.p.divRaw },
+    { k: 'spells', l: 'Spells', num: true, v: r => r.spells },
+    { k: 'days', l: 'Days', num: true, v: r => r.days, f: x => '<b>' + fmt(x) + '</b>' },
+    ...v.months.map(m => ({ k: 'm' + m, l: C.MON[m - 1], num: true, v: r => r.md[m], f: x => x ? fmt(x) : '<span class="muted">–</span>', mcol: true })),
+    { k: 'first', l: 'First day', v: r => r.first, f: fmtDMY, fcsv: C.dayISO },
+    { k: 'last', l: 'Last day', v: r => r.last, f: fmtDMY, fcsv: C.dayISO },
+  ];
+  if (link) cols.push({ k: 'status', l: 'HR status', csvOnly: true, v: r => { const h = link.map.get(r.p); return h === 'ambiguous' ? 'Ambiguous code' : h ? S_LABEL(h.status) : 'Not matched'; } });
+  return cols.filter(c => !c.hide);
+}
+function skSorted(rows, cols) {
+  const col = cols.find(c => c.k === S.sk.sort.key) || cols.find(c => c.k === 'days'), dir = S.sk.sort.dir;
+  return [...rows].sort((a, b) => {
+    const x = col.v(a), y = col.v(b);
+    if (x == null && y == null) return a.p.row - b.p.row; if (x == null) return 1; if (y == null) return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir || b.days - a.days || a.p.row - b.p.row;
+  });
+}
+
+function skLeavers(v, link) {
+  if (!MD().hasHR) return `<div class="panel"><div class="panel-h"><h3>Sick leave and leavers</h3></div><div class="panel-b"><p class="muted">Add the hirings & departures workbook to compare sick leave before leaving with everyone else. Employees are matched on employee code and division; names are not used.</p></div></div>`;
+  const inScope = new Set(v.rows.map(r => r.p));
+  const sum = [...inScope].reduce((a, p) => { const h = link.map.get(p); if (h === 'ambiguous') a.amb++; else if (h) a.ok++; else a.no++; return a; }, { ok: 0, amb: 0, no: 0 });
+  if (!sum.ok) return `<div class="panel"><div class="panel-h"><h3>Sick leave and leavers</h3></div><div class="panel-b"><p class="muted">None of the ${fmt(inScope.size)} employees in view could be matched to an HR record${sum.no && !link.matched ? ' — the sick leave file has no employee codes filled in' : ''}. ${sum.amb ? fmt(sum.amb) + ' codes match more than one HR record and are left out.' : ''}</p></div></div>`;
+  const end = Math.min(v.hi, v.lastDay || v.hi);
+  const lv = [], stay = [];
+  for (const r of v.rows) {
+    const h = link.map.get(r.p); if (!h || h === 'ambiguous') continue;
+    const ex = h.hr && h.hr.events.filter(e => e.code === 'x' && e.d >= v.lo && e.d <= end).pop();
+    const inWin = (a, b) => r.p.days.filter(d => d >= a && d <= b).length;
+    if (ex) { const exp = ex.d - v.lo + 1; lv.push({ r, h, d: ex.d, kind: ex.kind, before90: inWin(ex.d - 89, ex.d), toLeave: inWin(v.lo, ex.d), exp }); }
+    else stay.push({ r, days: inWin(v.lo, end), exp: end - v.lo + 1 });
+  }
+  const rate = arr => { const e = arr.reduce((s, x) => s + x.exp, 0); return e ? 30 * arr.reduce((s, x) => s + (x.toLeave != null ? x.toLeave : x.days), 0) / e : null; };
+  lv.sort((a, b) => a.d - b.d);
+  return `<div class="panel"><div class="panel-h"><h3>Sick leave and leavers</h3><span class="small muted">${fmt(sum.ok)} matched on code and division${sum.amb ? ', ' + fmt(sum.amb) + ' ambiguous' : ''}, ${fmt(sum.no)} not matched</span></div>
+    <div class="panel-b">
+      <dl class="facts"><dt>Leavers in ${esc(fmtDMY(v.lo))}–${esc(fmtDMY(end))}</dt><dd>${fmt(lv.length)}</dd>
+        <dt>Sick days per 30 days, leavers (period start to their last day)</dt><dd>${rate(lv) == null ? '–' : fmt(rate(lv), 2)}</dd>
+        <dt>Sick days per 30 days, everyone else matched (whole period)</dt><dd>${rate(stay) == null ? '–' : fmt(rate(stay), 2)}</dd></dl>
+      <p class="small muted sk-caveat">A pattern in the data, not a cause: these figures don’t show why anyone left.</p>
+    </div>
+    ${lv.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Employee</th><th>Left</th><th>How</th><th class="num">Sick days, 90 days before</th><th class="num">Sick days in period to leaving</th><th class="num">Spells</th></tr></thead>
+      <tbody>${lv.map(x => `<tr><td>${skPerson(x.r, link)}</td><td>${fmtDMY(x.d)}</td><td>${esc(M_.KIND_LABEL[x.kind] || x.kind)}</td><td class="num">${fmt(x.before90)}</td><td class="num"><b>${fmt(x.toLeave)}</b></td><td class="num">${fmt(x.r.spellList.filter(s => s.s <= x.d).length)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+  </div>`;
+}
+
+function skQuality(v) {
+  const books = v.shownBooks;
+  const all = books.flatMap(b => b.issues.map(i => Object.assign({ loc: b.location }, i)));
+  const order = { bad: 0, warn: 1, info: 2 };
+  all.sort((a, b) => order[a.lv] - order[b.lv] || a.loc.localeCompare(b.loc) || (a.row || 0) - (b.row || 0));
+  const n = lv => all.filter(i => i.lv === lv).length;
+  const LV = { bad: 'Error', warn: 'Check', info: 'Note' };
+  const facts = books.map(b => `<div class="sub-h">${esc(b.location)} — sheet ${esc(b.sheet)}</div><dl class="facts">
+      <dt>Employee rows</dt><dd>${fmt(b.people.length)}</dd><dt>Without employee code</dt><dd>${fmt(b.noCode)}</dd><dt>Without name</dt><dd>${fmt(b.noName)}</dd>
+      <dt>Sick leave periods counted</dt><dd>${fmt(b.periods)}</dd><dt>Periods excluded</dt><dd>${fmt(b.excluded)}</dd><dt>Blank rows skipped</dt><dd>${fmt(b.blankRows)}</dd>
+      ${b.missing.length ? `<dt>Missing columns</dt><dd>${esc(b.missing.join(', '))}</dd>` : ''}</dl>`).join('');
+  return `<div class="panel" id="sk-dq"><div class="panel-h"><h3>Data quality</h3><div class="head-acts"><span class="small muted">${fmt(n('bad'))} errors, ${fmt(n('warn'))} to check, ${fmt(n('info'))} notes. The source file is not changed.</span>
+      <button class="btn sm" data-act="sk-csv-dq" ${all.length ? '' : 'disabled'}>Download CSV</button></div></div>
+    <div class="sk-dq"><div class="panel-b">${facts}</div>
+    <div class="tbl-wrap sk-dq-t" id="sk-dq-scroll" data-keep><table class="t"><thead><tr><th></th>${books.length > 1 ? '<th>Location</th>' : ''}<th class="num">Row</th><th>Cells</th><th>What was found</th><th>Handled as</th></tr></thead>
+      <tbody>${all.map(i => `<tr><td><span class="chk ${i.lv === 'info' ? 'none' : i.lv}">${i.lv === 'info' ? '' : ICON.warn}${LV[i.lv]}</span></td>${books.length > 1 ? `<td>${esc(i.loc)}</td>` : ''}<td class="num">${i.row || '–'}</td><td class="small">${esc(i.cells || '–')}</td><td>${esc(i.msg)}</td><td class="small">${esc(i.effect)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">Nothing to report.</td></tr>'}</tbody></table></div></div></div>`;
+}
+
+function renderSick() {
+  if (!hasSick()) return head('Sick leave', '') + emptyState('No sick leave file yet', 'Add the sick leave workbook (one sheet per location, e.g. ΛΑΡΝΑΚΑ 2026) on the Files tab.', '<button class="btn primary" data-view="files">Go to Files</button>');
+  const v = skScope(), link = skLink();
+  const M = skMonthly(v);
+  const withLeave = v.rows.filter(r => r.days > 0);
+  const tDays = withLeave.reduce((s, r) => s + r.days, 0), tSpells = withLeave.reduce((s, r) => s + r.spells, 0);
+  const end = v.lastDay && v.lastDay < v.hi ? v.lastDay : v.hi;
+  const scopeTxt = [S.sk.loc || (v.locs.length > 1 ? v.locs.join(' and ') + ' combined' : v.locs[0]), S.sk.div ? S.sk.div.toLowerCase() : ''].filter(Boolean).join(', ');
+  const sub = `Period analysed: <b>${fmtDMY(v.lo)} to ${fmtDMY(v.hi)}</b>${v.lastDay && v.lastDay < v.hi ? ` (latest sick day recorded ${fmtDMY(v.lastDay)})` : ''}. ${esc(scopeTxt)}. Days are calendar days, counting both the FROM and the TILL date; a spell is a run of consecutive sick days, joined across months.`;
+  const kpi = (l, val, c) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="kpi-v">${val}</div><div class="kpi-c">${c}</div></div>`;
+  const series = v.divs.filter(d => !S.sk.div || d === S.sk.div).map(d => ({ label: d[0] + d.slice(1).toLowerCase(), color: SK_COL[d], values: Object.fromEntries(M.map(x => [x.m, x.byDiv[d] || 0])) }));
+  const other = M.some(x => x.byDiv['']);
+  if (other) series.push({ label: 'No division', color: SK_COL[''], values: Object.fromEntries(M.map(x => [x.m, x.byDiv[''] || 0])) });
+  const avgM = M.length ? tDays / M.length : 0;
+
+  const cols = skEmpColumns(v, link), shown = skSorted(S.sk.all ? v.rows : withLeave, cols).filter(r => S.sk.all || r.days > 0);
+  const th = c => c.csvOnly ? '' : `<th class="${c.num ? 'num' : ''}${c.mcol ? ' mcol' : ''}"><button class="sortb" data-act="sk-sort" data-k="${c.k}" aria-sort="${S.sk.sort.key === c.k ? (S.sk.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}">${esc(c.l)}${S.sk.sort.key === c.k ? (S.sk.sort.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
+  const td = (c, r) => c.csvOnly ? '' : `<td class="${c.num ? 'num' : ''}${c.mcol ? ' mcol' : ''}">${c.html ? c.html(r) : c.f ? c.f(c.v(r)) : esc(c.v(r) == null ? '–' : c.v(r))}</td>`;
+  const LIMIT = 300, cut = shown.length > LIMIT && !S.sk.more;
+
+  return head('Sick leave', sub, `<div class="head-acts"><button class="btn" data-act="sk-csv-emp" ${shown.length ? '' : 'disabled'}>Employees CSV</button><button class="btn" data-act="sk-csv-month">Monthly CSV</button></div>`) +
+    skControls(v) + `
+    <div class="kpis">
+      ${kpi('Sick days', fmt(tDays), `${fmt(avgM, 1)} a month on average over ${plural(M.length, 'month')}`)}
+      ${kpi('Employees with sick leave', fmt(withLeave.length), `${v.listed ? fmt(100 * withLeave.length / v.listed, 1) + '%' : '–'} of the ${fmt(v.listed)} employee rows in the sheet${v.shownBooks.length > 1 ? 's' : ''}`)}
+      ${kpi('Spells', fmt(tSpells), `${withLeave.length ? fmt(tSpells / withLeave.length, 2) : '–'} per employee with sick leave`)}
+      ${kpi('Days per employee with sick leave', withLeave.length ? fmt(tDays / withLeave.length, 1) : '–', `${tSpells ? fmt(tDays / tSpells, 1) : '–'} days per spell`)}
+    </div>
+    <div class="ov-grid">
+      <div class="panel"><div class="panel-h"><h3>Sick days per month</h3><div class="legend-i">${series.length > 1 ? series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('') : ''}<span><i class="avg-sw"></i>Average month ${fmt(avgM, 0)}</span></div></div>
+        <div class="panel-b">${chartBox('sk-month', 300, monthBars({ per: v.months, series, avg: avgM, avgInLegend: true, unit: ' days', label: 'Sick days per month', topLabels: Object.fromEntries(M.map(x => [x.m, fmt(x.days)])) }))}</div></div>
+      <div class="panel"><div class="panel-h"><h3>By month</h3></div><div class="tbl-wrap"><table class="t">
+        <thead><tr><th>Month</th><th class="num">Days</th><th class="num">Employees</th><th class="num">New spells</th><th class="num">Per employee</th><th class="num">% listed</th></tr></thead>
+        <tbody>${M.map(x => `<tr><td>${C.MONTHS[x.m - 1]}</td><td class="num"><b>${fmt(x.days)}</b></td><td class="num">${fmt(x.people)}</td><td class="num">${fmt(x.spells)}</td><td class="num">${x.people ? fmt(x.avg, 1) : '–'}</td><td class="num">${fmt(100 * x.pct, 1)}%</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="sep"><td><b>Period</b></td><td class="num"><b>${fmt(tDays)}</b></td><td class="num"><b>${fmt(withLeave.length)}</b></td><td class="num"><b>${fmt(tSpells)}</b></td><td class="num"><b>${withLeave.length ? fmt(tDays / withLeave.length, 1) : '–'}</b></td><td class="num"><b>${v.listed ? fmt(100 * withLeave.length / v.listed, 1) + '%' : '–'}</b></td></tr></tfoot></table></div>
+        <p class="small muted sk-foot">Employees counts anyone with at least one sick day that month, so the months don’t add up to the period. New spells counts spells by the month they start.</p></div>
+    </div>
+    <div class="panel"><div class="panel-h"><h3>Employees</h3><div class="head-acts"><span class="small muted">${plural(shown.length, 'employee')}${S.sk.all ? ' listed' : ' with sick leave in the period'}</span>
+      <button class="btn sm" data-act="sk-all" aria-pressed="${!!S.sk.all}">${S.sk.all ? 'Only those with sick leave' : 'Include everyone listed'}</button></div></div>
+      ${shown.length ? `<div class="tbl-wrap"><table class="t sk-emp-t"><thead><tr>${cols.map(th).join('')}</tr></thead><tbody>${(cut ? shown.slice(0, LIMIT) : shown).map(r => `<tr>${cols.map(c => td(c, r)).join('')}</tr>`).join('')}</tbody></table></div>
+        ${cut ? `<div class="panel-b"><button class="btn sm" data-act="sk-more">Show all ${fmt(shown.length)}</button></div>` : ''}` : `<div class="panel-b muted">${v.words.length ? 'Nobody matches the search.' : 'No sick leave in this period.'}</div>`}
+    </div>
+    ${skLeavers(v, link)}
+    ${skQuality(v)}`;
+}
+
+function skCsv(kind) {
+  const v = skScope(), link = skLink(), tag = v.yr + '-' + C.MON[S.sk.from - 1].toLowerCase() + '-' + C.MON[S.sk.to - 1].toLowerCase() + (S.sk.loc ? '-' + S.sk.loc : '') + (S.sk.div ? '-' + S.sk.div.toLowerCase() : '');
+  if (kind === 'emp') {
+    const cols = skEmpColumns(v, link), rows = skSorted(S.sk.all ? v.rows : v.rows.filter(r => r.days > 0), cols);
+    downloadCSV('sick-leave-employees-' + tag + '.csv', [...cols.map(c => c.l), 'Absence days (TOTAL ABSENCES column)'],
+      rows.map(r => [...cols.map(c => { const x = c.v(r); return c.fcsv ? c.fcsv(x) : x == null ? '' : x; }), r.abs || '']));
+  } else if (kind === 'month') {
+    downloadCSV('sick-leave-monthly-' + tag + '.csv', ['Month', 'Sick days', 'Employees with sick leave', 'New spells', 'Days per employee with sick leave', 'Share of listed employees'],
+      skMonthly(v).map(x => [C.MONTHS[x.m - 1] + ' ' + v.yr, x.days, x.people, x.spells, x.people ? +x.avg.toFixed(2) : '', +(x.pct * 100).toFixed(2) + '%']));
+  } else {
+    downloadCSV('sick-leave-data-quality-' + v.yr + '.csv', ['Level', 'Location', 'Sheet', 'Row', 'Cells', 'What was found', 'Handled as'],
+      v.shownBooks.flatMap(b => b.issues.map(i => [{ bad: 'Error', warn: 'Check', info: 'Note' }[i.lv], b.location, b.sheet, i.row || '', i.cells || '', i.msg, i.effect])));
+  }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act^="sk-"]');
+  if (!t || !S.model) return;
+  const a = t.dataset.act;
+  if (a === 'sk-set') { S.sk[t.dataset.k] = t.dataset.v; S.sk.more = false; render(); }
+  else if (a === 'sk-sort') { const k = t.dataset.k; S.sk.sort = S.sk.sort.key === k ? { key: k, dir: -S.sk.sort.dir } : { key: k, dir: ['name', 'loc', 'div', 'first', 'last'].includes(k) ? 1 : -1 }; render(); }
+  else if (a === 'sk-all') { S.sk.all = !S.sk.all; render(); }
+  else if (a === 'sk-more') { S.sk.more = true; render(); }
+  else if (a === 'sk-csv-emp') skCsv('emp');
+  else if (a === 'sk-csv-month') skCsv('month');
+  else if (a === 'sk-csv-dq') skCsv('dq');
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('select[data-sk]')) { const k = t.dataset.sk; S.sk[k] = +t.value; if (k === 'year') { S.sk.from = 1; S.sk.to = 0; } if (k === 'from' && S.sk.to < S.sk.from) S.sk.to = S.sk.from; if (k === 'to' && S.sk.from > S.sk.to) S.sk.from = S.sk.to; render(); }
+});
+let skTimer = null;
+document.addEventListener('input', e => { if (e.target.matches('input[data-skq]')) { S.sk.q = e.target.value; clearTimeout(skTimer); skTimer = setTimeout(render, 140); } });
+
+
 /* ---------- registry and events ---------- */
 VIEWS.unshift(
   { id: 'overview', label: 'Overview', render: renderOverview, filters: true },
   { id: 'inout', label: 'In & Out', render: renderInOut, filters: true, needsHR: true },
   { id: 'leavers', label: 'Leavers', render: renderLeavers, needsHR: true },
   { id: 'manpower', label: 'Manpower', render: renderManpower, needsHR: true },
+  { id: 'sick', label: 'Sick leave', render: renderSick, needsSick: true },
   { id: 'individual', label: 'Individual', render: renderIndividual, filters: true },
   { id: 'compare', label: 'Compare', render: renderCompare, filters: true },
   { id: 'employees', label: 'All employees', render: renderEmployees, filters: true },
@@ -2927,7 +3387,7 @@ function render() {
 
   $('#bar-year').textContent = 'Year ' + S.year;
   const ready = !S.busy && S.model;
-  const views = VIEWS.filter(v => v.id === 'files' || (ready && (!v.needsHR || S.model.hasHR)));
+  const views = VIEWS.filter(v => v.id === 'files' || (ready && (!v.needsHR || S.model.hasHR) && (!v.needsSick || S.sick.length)));
   if (!views.some(v => v.id === S.view)) S.view = 'files';
   const issues = ready && warnings().some(w => w[0] !== 'info');
   $('#tabs').innerHTML = views.map(v => `<button class="tab" role="tab" aria-selected="${S.view === v.id}" data-view="${v.id}">${v.label}${v.id === 'files' && issues ? '<span class="dot" title="Some files need attention"></span>' : ''}</button>`).join('');
@@ -2978,7 +3438,7 @@ function renderFiles() {
     : 'No payroll files have been read yet.';
 
   // table rows
-  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : 5;
+  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : f.kind === 'sick' ? 5 : 6;
   const files = [...S.files].sort((a, b) => order(a) - order(b) || (a.month || 0) - (b.month || 0) || a.id - b.id);
   let last = 0;
   const rows = files.map(f => {
@@ -3004,6 +3464,11 @@ function renderFiles() {
       readAs = '<span class="co mp">MP</span>Manpower report';
       if (S.mp && S.mp.fileId === f.id) rowsTxt = plural(S.mp.stations, 'station') + '<br>' + (S.mp.months.length ? S.mp.months[0] + ' to ' + S.mp.months[S.mp.months.length - 1] : 'no months');
       check = f.status === 'warn' ? `<span class="chk warn">${ICON.warn}No months</span>` : `<span class="chk ok">${ICON.check}Read</span>`;
+    } else if (f.kind === 'sick') {
+      const b = S.sick.find(x => x.fileId === f.id);
+      readAs = '<span class="co sk">SL</span>Sick leave' + (b ? ', ' + esc(b.sheet) : '');
+      if (b) rowsTxt = fmt(b.people.length) + ' rows<br>' + fmt(b.periods) + ' periods';
+      check = f.status === 'warn' ? `<span class="chk warn">${ICON.warn}Entries to check</span>` : `<span class="chk ok">${ICON.check}Read</span>`;
     } else {
       readAs = '<span class="muted">Not recognised</span>';
     }
@@ -3064,6 +3529,10 @@ function renderFiles() {
       ${['start', 'in', 'out', 'end'].map(k => `<dt>${{ start: 'START OF MONTH', in: 'IN', out: 'OUT', end: 'END OF MONTH' }[k]}</dt><dd>${fmt((S.mp.sheets[k] || []).length)} rows</dd>`).join('')}</dl>
     </div></div>` : '';
 
+  const sk = S.sick.length ? `<div class="panel"><div class="panel-h"><h3>Sick leave</h3><button class="btn sm" data-view="sick">Open</button></div><div class="panel-b">
+      ${S.sick.map(b => `<div class="sub-h">${esc(b.location)} ${b.dataYear || ''}</div><dl class="facts"><dt>Employee rows</dt><dd>${fmt(b.people.length)}</dd><dt>With code / name</dt><dd>${fmt(b.people.length - b.noCode)} / ${fmt(b.people.length - b.noName)}</dd>
+        <dt>Periods counted</dt><dd>${fmt(b.periods)}</dd><dt>Periods excluded</dt><dd>${fmt(b.excluded)}</dd><dt>Latest sick day</dt><dd>${b.lastDay == null ? '–' : fmtDMY(b.lastDay)}</dd></dl>`).join('')}
+    </div></div>` : '';
   return `<div class="view-head"><div><h2>Files</h2><p>${esc(summary)}</p></div>
       <div class="year-row" style="margin:0"><label for="year2">Year</label><input id="year2" type="number" min="2000" max="2100" value="${S.year}"></div></div>
     <div class="files-grid">
@@ -3074,7 +3543,7 @@ function renderFiles() {
           <tbody>${rows}</tbody>${foot}</table></div></div>
         ${notes}
       </div>
-      <div class="stack">${boardHTML()}${hr}${mp}</div>
+      <div class="stack">${boardHTML()}${hr}${mp}${sk}</div>
     </div>`;
 }
 
