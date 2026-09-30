@@ -461,6 +461,11 @@ details.mapd select { padding: .3rem .45rem; border: 1px solid var(--line-2); bo
 :root[data-theme="dark"] .lv-chip[aria-pressed="true"] { background: var(--amber); border-color: var(--amber-line); }
 .lv-chip.lv-all { min-width: 96px; margin-right: 8px; }
 .lv-bar { display: grid; gap: 8px; }
+.lv-tabs { margin: 0 0 14px; }
+.tr-list { margin: 0; padding-left: 1.2em; display: grid; gap: 7px; }
+.tr-list li::marker { color: var(--muted); }
+.tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr)); gap: 20px; align-items: start; }
+table.tr td.num, table.tr th.num { white-space: nowrap; }
 .lv-hint { font-size: .867rem; color: var(--muted); }
 .lv-hint b { color: var(--ink); }
 .lv-sec { scroll-margin-top: 90px; }
@@ -1007,13 +1012,14 @@ function parseManpower(wb, sheets) {
 const SICK_AUX = ['SICKLEAVE', 'RESULTS', 'FORMULAS'].map(normHeader);
 const MONTH_KEYS = MONTHS.map(m => normHeader(m));
 const FROM_WORDS = new Set(['FROM', 'ΑΠΟ'].map(normHeader)), TILL_WORDS = new Set(['TILL', 'TO', 'UNTIL', 'ΕΩΣ', 'ΜΕΧΡΙ'].map(normHeader));
+const SICK_CODE_HEADS = ['EMPLOYEE CODE', 'ID', 'ΚΩΔΙΚΟΣ'].map(normHeader);   // the code column is headed EMPLOYEE CODE in some files, ID in others
 const isSickBook = names => names.some(n => normHeader(n).startsWith('SICKLEAVE'));
 const sickCandidates = names => names.filter(n => !SICK_AUX.some(a => normHeader(n).startsWith(a)));
 function sickHeaderRow(ws) {
   const rg = range(ws);
   for (let r = rg.s.r; r <= Math.min(rg.e.r, rg.s.r + 8); r++)
     for (let c = rg.s.c; c <= Math.min(rg.e.c, rg.s.c + 12); c++)
-      if (normHeader(cell(ws, r, c)) === 'EMPLOYEE CODE') {
+      if (SICK_CODE_HEADS.includes(normHeader(cell(ws, r, c)))) {
         for (let k = c; k <= rg.e.c; k++) if (normHeader(cell(ws, r, k)) === 'JANUARY FROM') return r;
       }
   return -1;
@@ -1032,8 +1038,8 @@ function parseSick(wb, sheet) {
   const mY = /^(.*?)[\s_-]*((?:19|20)\d\d)\s*$/.exec(String(sheet).trim());
   const out = { sheet, location: ((mY ? mY[1] : sheet) || sheet).trim(), sheetYear: mY ? +mY[2] : null, dataYear: null,
     people: [], issues: [], missing: [], blankRows: 0, footerRows: 0, periods: 0, excluded: 0, noCode: 0, noName: 0, lastDay: null };
-  if (hr < 0) { out.error = 'No header row with EMPLOYEE CODE and JANUARY FROM was found.'; return out; }
-  const cols = findCols(ws, hr, { code: ['EMPLOYEE CODE', 'ΚΩΔΙΚΟΣ'], name: ['NAME', 'ΟΝΟΜΑ', 'ΟΝΟΜΑΤΕΠΩΝΥΜΟ'], div: ['ΕΤΑΙΡΕΙΑ', 'COMPANY', 'DIVISION'] });
+  if (hr < 0) { out.error = 'No header row with EMPLOYEE CODE (or ID) and JANUARY FROM was found.'; return out; }
+  const cols = findCols(ws, hr, { code: ['EMPLOYEE CODE', 'ID', 'ΚΩΔΙΚΟΣ'], name: ['NAME', 'ΟΝΟΜΑ', 'ΟΝΟΜΑΤΕΠΩΝΥΜΟ'], div: ['ΕΤΑΙΡΕΙΑ', 'COMPANY', 'DIVISION'] });
   for (const [k, l] of [['code', 'EMPLOYEE CODE'], ['name', 'NAME'], ['div', 'ΕΤΑΙΡΕΙΑ']]) if (cols[k] < 0) out.missing.push(l);
 
   // month blocks: FROM opens a pair, the next TILL closes it; the bare month name is TOTAL ABSENCES
@@ -1071,6 +1077,14 @@ function parseSick(wb, sheet) {
     const anyMonth = blocks.some(b => [b.total, ...b.pairs.flatMap(p => [p.from, p.till])].some(c => c >= 0 && !isBlank(cell(ws, r, c))));
     const anyExtra = extra.some(c => !isBlank(cell(ws, r, c)));
     if (isBlank(codeV) && isBlank(nameV) && isBlank(divV) && !anyMonth && !anyExtra) { blanks.push(r); continue; }
+    // no code, name or company and no dates: a totals/check row under the data (e.g. =SUM(...) or =#REF!-...), not an employee
+    const anyDates = blocks.some(b => b.pairs.some(pr => [pr.from, pr.till].some(c => c >= 0 && !isBlank(cell(ws, r, c)))));
+    if (isBlank(codeV) && isBlank(nameV) && isBlank(divV) && !anyDates && !anyExtra) {
+      out.footerRows++;
+      const broken = blocks.some(b => b.total >= 0 && /^#/.test(String(cell(ws, r, b.total) || '')));
+      if (broken) issue('info', r + 1, '', 'A totals row under the data shows a formula error (#REF!).', 'Not used: totals are worked out from the dates');
+      continue;
+    }
     const p = { row: r + 1, code: isBlank(codeV) ? '' : codeText(codeV), codeKey: digitsKey(codeV), name: cleanText(nameV),
       div: divisionOf(divV), divRaw: cleanText(divV), periods: [], abs: {} };
     if (!p.code) out.noCode++;
@@ -1470,6 +1484,7 @@ const fresh = () => ({
   cmp: { mode: 'people', people: [], depts: [] }, cmpQ: '',
   sort: { key: 'total', dir: -1 },
   lvSel: [],            // Leavers tab: months picked (empty = all)
+  lvTab: 'list', lvDiv: '',   // Leavers tab: which sub-tab (list | trends) and the division for Trends
   mpv: { from: '', to: '', div: '', fig: 'end', mode: 'computed' }, mpMap: null,
   io: { div: '', station: '', month: 0, kind: '', reason: '', tab: 'left', sort: { key: 'date', dir: -1 } },
 });
@@ -1552,7 +1567,7 @@ async function ingest(list) {
       const names = it.cls.kind === 'sick' ? it.cls.sheets : C.peekSheets(it.buf);
       const wb = C.readSheets(it.buf, names, true);
       const sheet = C.findSickSheet(wb, names);
-      if (!sheet) { if (it.cls.kind === 'sick') Object.assign(it.entry, { status: 'error', note: 'No sheet with EMPLOYEE CODE, NAME and JANUARY FROM headers was found.' }); continue; }
+      if (!sheet) { if (it.cls.kind === 'sick') Object.assign(it.entry, { status: 'error', note: 'No sheet with EMPLOYEE CODE (or ID), NAME and JANUARY FROM headers was found.' }); continue; }
       const r = C.parseSick(wb, sheet);
       Object.assign(it.entry, { kind: 'sick', cls: { kind: 'sick' } });
       if (r.error) { Object.assign(it.entry, { status: 'error', note: r.error }); continue; }
@@ -2969,8 +2984,9 @@ function lvShown(L) {
 const joinMonths = ms => ms.map(m => C.MONTHS[m - 1]).reduce((a, b, i, arr) => i === 0 ? b : a + (i === arr.length - 1 ? ' and ' : ', ') + b, '');
 
 function renderLeavers() {
+  if (S.lvTab === 'trends') return renderLeaverTrends();
   const L = leaversByMonth(), { md, per, months, byM } = L;
-  if (!months.length) return head('Leavers', '') + emptyState('Nothing to show for ' + md.year, 'This tab covers the year set on the Files tab, up to today.');
+  if (!months.length) return head('Leavers', '') + lvTabs() + emptyState('Nothing to show for ' + md.year, 'This tab covers the year set on the Files tab, up to today.');
   const total = months.reduce((s, m) => s + (byM[m] ? byM[m].length : 0), 0);
   const shown = lvShown(L), picked = S.lvSel.length > 0;
   const shownN = shown.reduce((s, m) => s + (byM[m] ? byM[m].length : 0), 0);
@@ -2997,7 +3013,7 @@ function renderLeavers() {
       <div class="tbl-wrap"><table class="t lv" style="--lv-n:${per.length}">${cols}${thead(m)}<tbody>${rows}</tbody></table></div></section>`;
   }).join('');
   return head('Leavers', `${plural(total, 'person', 'people')} left the group in ${md.year}${L.partial ? ', up to today' : ''}. The average is their total hours divided by the months they had hours; the highlighted column is the month they left. Moves to another group company are not counted.`,
-      `<div class="head-acts"><button class="btn" data-act="lv-csv" ${shownN ? '' : 'disabled'}>Download CSV${picked ? ' (' + plural(shown.length, 'month') + ')' : ''}</button></div>`) + nav + sections;
+      `<div class="head-acts"><button class="btn" data-act="lv-csv" ${shownN ? '' : 'disabled'}>Download CSV${picked ? ' (' + plural(shown.length, 'month') + ')' : ''}</button></div>`) + lvTabs() + nav + sections;
 }
 
 function csvLeavers() {
@@ -3008,6 +3024,293 @@ function csvLeavers() {
     r.s.total ? +r.s.avg.toFixed(2) : '', r.s.worked, ...per.map(k => r.x.m[k] || 0)])));
   downloadCSV('leavers-' + md.year + (S.lvSel.length ? '-' + shown.map(m => C.MON[m - 1].toLowerCase()).join('-') : '-by-month') + '.csv', ['Month left', 'Last day', 'Employee', 'Codes', 'Α.Κ.Α.', 'Average hours per month', 'Months with hours', ...per.map(k => C.MONTHS[k - 1])], data);
 }
+
+/* ---------- Leavers › Trends ------------------------------------------------
+   A second view inside the Leavers tab. It looks at every departure from the
+   start of the HR window (1 January, three years before the year on the Files
+   tab) up to today, so it is not limited to one year. Turnover is leavers
+   divided by the average of month-end headcounts, the same way In & Out does it.
+   Comparisons use whole calendar months only: the last 12 complete months
+   against the 12 before them. */
+
+const LV_TABS = [['list', 'By month'], ['trends', 'Trends']];
+const lvTabs = () => `<div class="lv-tabs"><div class="seg" role="group" aria-label="Leavers view">${LV_TABS.map(([k, l]) => `<button data-act="lv-tab" data-v="${k}" aria-pressed="${(S.lvTab || 'list') === k}">${l}</button>`).join('')}</div></div>`;
+
+function lvTrendData(div) {
+  const md = MD(), asOf = md.asOf, W0 = md.W0;
+  const [wy, wm] = C.dayParts(W0), [ay, am] = C.dayParts(asOf);
+  const months = [];
+  for (let y = wy, m = wm; y < ay || (y === ay && m <= am); m === 12 ? (y++, m = 1) : m++) {
+    const s = C.dayOf(y, m, 1), e = C.monthEnd(y, m);
+    months.push({ y, m, s, e, partial: e > asOf, n: 0 });
+  }
+  const N = months.length, lc = months[N - 1].partial ? N - 2 : N - 1;   // last complete month
+  const idx = d => { const [y, m] = C.dayParts(d); return (y - wy) * 12 + (m - wm); };
+
+  // headcount snapshots: k = 0 is the day before the window, k = j + 1 is the end of month j
+  const snapDays = [W0 - 1, ...months.map(mo => Math.min(mo.e, asOf))];
+  const hcAll = new Array(N + 1).fill(0), hcSt = {};
+  for (const p of md.people) {
+    const h = p.hr; if (!h || p.ghost) continue;
+    snapDays.forEach((d, k) => {
+      if (!M_.employedAt(h, d)) return;
+      const po = M_.postingAt(h, d), dv = po.division || h.division;
+      if (div && dv !== div) return;
+      hcAll[k]++;
+      const st = po.station || '(no station)';
+      (hcSt[st] || (hcSt[st] = new Array(N + 1).fill(0)))[k]++;
+    });
+  }
+
+  const ev = [];
+  for (const p of md.people) {
+    const h = p.hr; if (!h) continue;
+    for (const e of h.events) {
+      if (e.code !== 'x' || e.d < W0 || e.d > asOf) continue;
+      const dv = e.division || h.division;
+      if (div && dv !== div) continue;
+      const i = idx(e.d);
+      months[i].n++;
+      ev.push({ p, e, d: e.d, i, division: dv, station: e.station || '(no station)', kind: e.kind, reasons: e.exit.reasons,
+        served: e.servedAt == null ? null : e.servedAt, age: ageAt(p, e.d) });
+    }
+  }
+
+  const stAvg = (st, a, b) => { const arr = hcSt[st]; if (!arr) return 0; let s = 0; for (let k = a; k <= b + 1; k++) s += arr[k]; return s / (b - a + 2); };
+  const median = arr => !arr.length ? null : arr.length % 2 ? arr[(arr.length - 1) / 2] : (arr[arr.length / 2 - 1] + arr[arr.length / 2]) / 2;
+  const win = (a, b) => {
+    if (a < 0 || b < a) return null;
+    const list = ev.filter(x => x.i >= a && x.i <= b);
+    let s = 0; for (let k = a; k <= b + 1; k++) s += hcAll[k];
+    const avg = s / (b - a + 2);
+    const served = list.map(x => x.served).filter(v => v != null).sort((p, q) => p - q);
+    const cnt = fn => { const o = {}; list.forEach(x => fn(x).forEach(k => o[k] = (o[k] || 0) + 1)); return o; };
+    const w3 = served.filter(v => v < 91.31).length;
+    return { a, b, from: months[a], to: months[b], list, n: list.length, avg, turn: avg ? list.length / avg : null,
+      servedN: served.length, med: median(served), w3, w3s: served.length ? w3 / served.length : null,
+      kinds: cnt(x => [x.kind]), reasons: cnt(x => x.reasons), noReason: list.filter(x => !x.reasons.length).length,
+      ten: bandCounts(list.map(x => x.served), TENURE_BANDS), age: bandCounts(list.map(x => x.age), AGE_BANDS),
+      stations: cnt(x => [x.station]), divs: cnt(x => [x.division || '(none)']) };
+  };
+
+  // rolling 12 months, one point per complete month that has 12 months behind it
+  const roll = new Array(N).fill(null);
+  for (let i = 11; i <= lc; i++) {
+    let n = 0, s = 0;
+    for (let j = i - 11; j <= i; j++) n += months[j].n;
+    for (let k = i - 11; k <= i + 1; k++) s += hcAll[k];
+    const avg = s / 13; roll[i] = { n, avg, pct: avg ? 100 * n / avg : null };
+  }
+
+  const rec = lc >= 11 ? win(lc - 11, lc) : null, pri = lc >= 23 ? win(lc - 23, lc - 12) : null;
+  const q = lc >= 2 ? win(lc - 2, lc) : null, qPrev = lc >= 14 ? win(lc - 14, lc - 12) : null;   // last 3 months and the same 3 a year earlier
+
+  const years = [];
+  for (let y = wy; y <= ay; y++) {
+    const ix = months.map((mo, i) => mo.y === y ? i : -1).filter(i => i >= 0); if (!ix.length) continue;
+    const a = ix[0], b = ix[ix.length - 1], w = win(a, b);
+    const days = ix.reduce((s, i) => s + Math.min(months[i].e, asOf) - months[i].s + 1, 0);
+    const resigned = w.kinds.resigned || 0;
+    years.push({ y, w, partial: ix.length < 12 || months[b].partial, annual: w.avg ? w.n / w.avg * 365 / days : null, resigned, days });
+  }
+  return { md, months, N, lc, ev, hcAll, hcSt, stAvg, roll, rec, pri, q, qPrev, years, wy, wm, ay, asOf };
+}
+
+/* one SVG for all three trend charts: bars, lines, or both, over any list of x positions */
+function lvChart(o) {
+  return (w, h) => {
+    const { xs, bars, lines = [], fmtY = fmtK } = o;
+    const L = 46, R = 12, T = 14, B = 34, iw = w - L - R, ih = h - T - B;
+    const vals = [...(bars || []), ...lines.flatMap(s => s.values)].filter(v => v != null);
+    const sc = niceScale(Math.max(1, ...vals));
+    const y = v => T + ih - v / sc.top * ih, band = iw / Math.max(1, xs.length), x = i => L + band * i + band / 2;
+    const every = Math.max(1, Math.ceil(30 / band));
+    let g = '';
+    for (let v = 0; v <= sc.top + 1e-9; v += sc.step) g += `<line x1="${L}" x2="${w - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 7}" y="${y(v) + 3.5}" class="ax" text-anchor="end">${fmtY(v)}</text>`;
+    xs.forEach((p, i) => {
+      if (bars && bars[i]) {
+        const bw = Math.max(2, Math.min(30, band * 0.66));
+        g += `<rect x="${x(i) - bw / 2}" y="${y(bars[i])}" width="${bw}" height="${Math.max(0.5, y(0) - y(bars[i]))}" style="fill:${o.barColor || 'var(--bad)'};${p.partial ? 'opacity:.5' : ''}"/>`;
+        if (band >= 22) g += `<text x="${x(i)}" y="${y(bars[i]) - 5}" class="ax bar-l" text-anchor="middle">${bars[i]}</text>`;
+      }
+      if (i % every === 0) {
+        g += `<text x="${x(i)}" y="${h - 17}" class="ax" text-anchor="middle">${esc(p.label)}</text>`;
+        if (p.sub) g += `<text x="${x(i)}" y="${h - 5}" class="ax" text-anchor="middle" style="font-weight:650">${esc(p.sub)}</text>`;
+      }
+    });
+    lines.forEach(s => {
+      let run = [];
+      const flush = () => { if (run.length > 1) g += `<polyline points="${run.join(' ')}" class="ln" style="stroke:${s.color};${s.dash ? 'stroke-dasharray:6 4;' : ''}${s.thin ? 'stroke-width:1.8' : ''}"/>`; run = []; };
+      s.values.forEach((v, i) => { if (v == null) { flush(); return; } run.push(x(i).toFixed(1) + ',' + y(v).toFixed(1)); });
+      flush();
+      if (!s.noDots) s.values.forEach((v, i) => { if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${xs.length > 20 ? 2.4 : 3.2}" style="fill:${s.color}" class="dot"/>`; });
+    });
+    xs.forEach((p, i) => g += `<rect x="${L + band * i}" y="${T}" width="${band}" height="${ih}" class="hit" data-tip="${esc(p.tip || '')}"/>`);
+    return `<svg width="${w}" height="${h}" role="img" aria-label="${esc(o.label || 'Trend')}">${g}</svg>`;
+  };
+}
+
+const lvPP = (a, b) => (a >= b ? '+' : '−') + Math.abs(100 * (a - b)).toFixed(1) + ' pp';
+const lvPct = v => v == null ? '–' : v === 0 ? '0%' : (100 * v).toFixed(v < 0.1 ? 1 : 0) + '%';
+const lvWinLabel = w => C.MON[w.from.m - 1] + ' ' + w.from.y + ' – ' + C.MON[w.to.m - 1] + ' ' + w.to.y;
+
+// a table that puts the last 12 months next to the 12 before: count and share of the total in one cell, then the change in share
+function lvCompare(title, foot, rows, rec, pri, dens) {
+  const list = rows.filter(r => r.r || r.p).sort((a, b) => (b.r - a.r) || (b.p - a.p));
+  if (!list.length) return '';
+  const sh = (n, d) => d ? n / d : null;
+  const cellOf = (n, share) => `<b>${fmt(n)}</b> <span class="muted">${lvPct(share)}</span>`;
+  const head = pri ? `<th></th><th class="num">Prior 12 months</th><th class="num">Last 12 months</th><th class="num">Change in share</th>`
+    : `<th></th><th class="num">Last 12 months</th>`;
+  const body = list.map(r => {
+    const a = sh(r.r, dens.r), b = pri ? sh(r.p, dens.p) : null;
+    return pri ? `<tr><td>${esc(r.label)}</td><td class="num">${cellOf(r.p, b)}</td><td class="num">${cellOf(r.r, a)}</td><td class="num"><span class="delta">${a == null || b == null ? '–' : lvPP(a, b)}</span></td></tr>`
+      : `<tr><td>${esc(r.label)}</td><td class="num">${cellOf(r.r, a)}</td></tr>`;
+  }).join('');
+  return `<div class="panel"><div class="panel-h"><h3>${title}</h3></div><div class="tbl-wrap"><table class="t tr"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${foot ? `<div class="panel-foot small muted">${foot}</div>` : ''}</div>`;
+}
+
+function lvInsights(D) {
+  const { rec, pri, q, qPrev, months, ev } = D, out = [];
+  const more = (a, b) => b === 0 ? (a === 0 ? 'the same as' : 'up from none in') : a === b ? 'the same as' : Math.round(100 * Math.abs(a - b) / b) + '% ' + (a > b ? 'more' : 'fewer') + ' than';
+  if (rec && pri) {
+    out.push(`<b>${plural(rec.n, 'person', 'people')} left</b> in the last 12 months (${lvWinLabel(rec)}), ${more(rec.n, pri.n)} the ${fmt(pri.n)} in the 12 months before.`);
+    if (rec.turn != null && pri.turn != null) out.push(`Annual turnover is <b>${(100 * rec.turn).toFixed(1)}%</b>, against ${(100 * pri.turn).toFixed(1)}% a year earlier (${lvPP(rec.turn, pri.turn)}). Average headcount was ${fmt(rec.avg)} against ${fmt(pri.avg)}.`);
+  } else if (rec) out.push(`<b>${plural(rec.n, 'person', 'people')} left</b> in the last 12 months (${lvWinLabel(rec)}). There is not yet a full year before that to compare with.`);
+  if (q && qPrev && (q.n || qPrev.n)) out.push(`In the last three months (${lvWinLabel(q)}), ${fmt(q.n)} left, ${more(q.n, qPrev.n)} the ${fmt(qPrev.n)} in the same three months a year earlier. That comparison is not affected by the time of year.`);
+
+  // busiest calendar month across the complete months on record
+  const by = new Array(12).fill(0), seen = new Array(12).fill(0);
+  months.forEach(mo => { if (!mo.partial) { by[mo.m - 1] += mo.n; seen[mo.m - 1]++; } });
+  const av = by.map((v, i) => seen[i] ? v / seen[i] : 0), tot = by.reduce((a, b) => a + b, 0), mean = av.reduce((a, b) => a + b, 0) / 12;
+  const top = av.indexOf(Math.max(...av));
+  if (tot >= 30 && av[top] >= 1.25 * mean) out.push(`<b>${C.MONTHS[top]}</b> is the busiest month for leavers: ${fmt(av[top], 1)} a year on average, against ${fmt(mean, 1)} for a typical month.`);
+
+  if (rec && pri && rec.servedN >= 10 && pri.servedN >= 10) out.push(`<b>${lvPct(rec.w3s)}</b> of leavers with a start date had been here under three months, against ${lvPct(pri.w3s)} the year before (${lvPP(rec.w3s, pri.w3s)}). Median service at leaving is ${fmtDur(rec.med)}, against ${fmtDur(pri.med)}.`);
+  else if (rec && rec.servedN >= 10) out.push(`<b>${lvPct(rec.w3s)}</b> of leavers with a start date had been here under three months. Median service at leaving is ${fmtDur(rec.med)}.`);
+
+  if (rec && rec.n >= 10) {
+    const rs = Object.keys(rec.reasons).map(n => ({ n: +n, r: rec.reasons[n], p: pri ? (pri.reasons[n] || 0) : 0 })).sort((a, b) => b.r - a.r);
+    if (rs.length) out.push(`The reason given most often is <b>${esc(M_.REASONS[rs[0].n])}</b>, on ${lvPct(rs[0].r / rec.n)} of departures in the last 12 months.${rec.noReason ? ` ${plural(rec.noReason, 'departure')} had no numbered reason.` : ''}`);
+    if (pri && pri.n >= 10) {
+      const rise = rs.filter(x => x.r >= 5).map(x => ({ ...x, d: x.r / rec.n - x.p / pri.n })).sort((a, b) => b.d - a.d)[0];
+      if (rise && rise.d >= 0.05) out.push(`Biggest rise among reasons: <b>${esc(M_.REASONS[rise.n])}</b>, from ${lvPct(rise.p / pri.n)} to ${lvPct(rise.r / rec.n)} of departures.`);
+    }
+    const st = Object.entries(rec.stations).sort((a, b) => b[1] - a[1]);
+    if (st.length && st[0][1] >= 3 && st.length > 1) out.push(`Most leavers came from <b>${esc(st[0][0])}</b>: ${fmt(st[0][1])} of ${fmt(rec.n)} (${lvPct(st[0][1] / rec.n)}).`);
+    if (pri) {
+      const up = st.map(([s, n]) => [s, n, n - (pri.stations[s] || 0)]).filter(x => x[1] >= 3 && x[2] >= 3).sort((a, b) => b[2] - a[2])[0];
+      if (up) out.push(`Largest increase by station: <b>${esc(up[0])}</b>, ${fmt(up[1])} leavers against ${fmt(pri.stations[up[0]] || 0)}.`);
+    }
+  }
+  return out;
+}
+
+function renderLeaverTrends() {
+  const md = MD(), div = S.lvDiv || '';
+  const D = lvTrendData(div);
+  const { months, rec, pri, roll, lc, ev, years, N } = D;
+  const total = ev.length;
+  const divSel = `<div class="panel io-bar"><div class="io-f"><div class="fg"><label class="fl" for="lv-div">Division</label><select id="lv-div" data-lvdiv>${[['', 'All divisions'], ...C.DIVS.map(d => [d, d])].map(([v, l]) => `<option value="${esc(v)}"${v === div ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div></div>
+    <p class="io-scope">Every departure recorded from ${C.MONTHS[D.wm - 1]} ${D.wy} to today. Moves between group companies are not leavers. The year on the Files tab only sets where the history starts.${md.ghosts ? ' ' + plural(md.ghosts, 'probable unfiled departure') + ' (no record of any kind for three years, no hours) ' + (md.ghosts === 1 ? 'is' : 'are') + ' left out of headcount, as on In & Out.' : ''}</p></div>`;
+  const csvBtn = `<div class="head-acts"><button class="btn" data-act="lv-trend-csv" ${total ? '' : 'disabled'}>Monthly CSV</button></div>`;
+  const sub = `How leaving has changed over time${div ? ' in ' + esc(div) : ''}. These are patterns in the records, not explanations: they show when and who, not why.`;
+  if (!total) return head('Leavers', sub, csvBtn) + lvTabs() + divSel + emptyState('No departures in this period', `Nobody is recorded as leaving between ${C.MONTHS[D.wm - 1]} ${D.wy} and today${div ? ' in ' + div : ''}.`);
+
+  const tile = (l, v, c) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="kpi-v">${v}</div><div class="kpi-c">${c}</div></div>`;
+  const chg = (a, b) => b == null ? '' : b === 0 ? (a === 0 ? 'same as before' : 'up from none') : a === b ? 'same as before' : (a > b ? '+' : '−') + Math.round(100 * Math.abs(a - b) / b) + '% on the 12 months before (' + fmt(b) + ')';
+  const kpis = rec ? `<div class="kpis">
+      ${tile('Leavers, last 12 months', fmt(rec.n), pri ? chg(rec.n, pri.n) : esc(lvWinLabel(rec)))}
+      ${tile('Turnover', rec.turn == null ? '–' : (100 * rec.turn).toFixed(1) + '%', pri && pri.turn != null && rec.turn != null ? `${lvPP(rec.turn, pri.turn)} on ${(100 * pri.turn).toFixed(1)}% the year before` : `${fmt(rec.n)} ÷ ${fmt(rec.avg, 1)} average headcount`)}
+      ${tile('Median service at leaving', rec.med == null ? '–' : fmtDur(rec.med), pri && pri.med != null ? 'against ' + fmtDur(pri.med) + ' the year before' : `${fmt(rec.servedN)} leavers with a start date`)}
+      ${tile('Left within 3 months', rec.w3s == null ? '–' : lvPct(rec.w3s), `${fmt(rec.w3)} of ${fmt(rec.servedN)} with a start date${pri && pri.w3s != null ? '; ' + lvPct(pri.w3s) + ' the year before' : ''}`)}
+    </div>` : `<div class="note info">${ICON.info}<span>Less than 12 complete months of history: the comparisons need a full year, so only the monthly figures are shown.</span></div>`;
+
+  const ins = lvInsights(D);
+  const insights = ins.length ? `<div class="panel"><div class="panel-h"><h3>What stands out</h3></div><div class="panel-b"><ul class="tr-list">${ins.map(t => `<li>${t}</li>`).join('')}</ul>
+      <p class="small muted" style="margin-top:10px">Small numbers move a lot: a change of a few people is not necessarily a trend. Reasons are the numbered reasons on the exit form and can be more than one per person.</p></div></div>` : '';
+
+  // monthly bars with a 3-month moving average
+  const ma = months.map((mo, i) => i >= 2 && !mo.partial && !months[i - 1].partial ? (months[i].n + months[i - 1].n + months[i - 2].n) / 3 : null);
+  const hcE = i => D.hcAll[i + 1];
+  const mx = months.map((mo, i) => ({ label: C.MON[mo.m - 1], sub: mo.m === 1 || i === 0 ? String(mo.y) : '', partial: mo.partial,
+    tip: `${C.MONTHS[mo.m - 1]} ${mo.y}${mo.partial ? ' (to date)' : ''}\nLeft ${mo.n}\nHeadcount at month end ${fmt(hcE(i))}${ma[i] != null ? '\nThree-month average ' + fmt(ma[i], 1) : ''}` }));
+  const monthly = chartBox('lv-t-month', 250, lvChart({ xs: mx, bars: months.map(m => m.n), lines: [{ label: 'Three-month average', color: 'var(--brand-2)', values: ma.map(v => v == null ? null : +v.toFixed(2)), noDots: true }], label: 'Leavers per month' }));
+
+  // rolling 12-month turnover
+  const ri = months.map((_, i) => i).filter(i => roll[i]);
+  const rollChart = ri.length > 1 ? chartBox('lv-t-roll', 250, lvChart({
+    xs: ri.map(i => ({ label: C.MON[months[i].m - 1], sub: months[i].m === 1 || i === ri[0] ? String(months[i].y) : '',
+      tip: `12 months to ${C.MONTHS[months[i].m - 1]} ${months[i].y}\nTurnover ${roll[i].pct == null ? '–' : roll[i].pct.toFixed(1) + '%'}\n${fmt(roll[i].n)} leavers, average headcount ${fmt(roll[i].avg, 1)}` })),
+    lines: [{ label: 'Turnover', color: 'var(--c2)', values: ri.map(i => roll[i].pct == null ? null : +roll[i].pct.toFixed(2)), noDots: ri.length > 24 }],
+    fmtY: v => fmt(v, v < 10 && v % 1 ? 1 : 0) + '%', label: 'Rolling 12-month turnover' })) : '<p class="muted small">Needs at least 13 complete months of history.</p>';
+
+  // year on year by calendar month
+  const yLines = years.map((y, k) => ({ label: String(y.y), color: COLORS[k % COLORS.length],
+    values: Array.from({ length: 12 }, (_, m) => { const i = months.findIndex(mo => mo.y === y.y && mo.m === m + 1); return i < 0 ? null : months[i].n; }) }));
+  const seasonX = C.MON.map((mn, m) => ({ label: mn, tip: C.MONTHS[m] + '\n' + yLines.map(s => s.label + ': ' + (s.values[m] == null ? '–' : s.values[m])).join('\n') }));
+  const season = chartBox('lv-t-season', 250, lvChart({ xs: seasonX, lines: yLines, label: 'Leavers by calendar month, year on year' }));
+
+  // year by year table
+  const yrRows = years.map(y => { const w = y.w, k = w.kinds;
+    return `<tr><td><b>${y.y}</b>${y.partial ? ' <span class="muted small">to date</span>' : ''}</td><td class="num"><b>${fmt(w.n)}</b></td><td class="num">${fmt(w.avg)}</td><td class="num">${y.annual == null ? '–' : (100 * y.annual).toFixed(1) + '%'}</td>
+      <td class="num">${w.med == null ? '–' : fmtDur(w.med)}</td><td class="num">${lvPct(w.w3s)}</td><td class="num">${w.n ? lvPct((k.resigned || 0) / w.n) : '–'}</td><td class="num">${w.n ? lvPct((k.contract || 0) / w.n) : '–'}</td><td class="num">${w.n ? lvPct((k.dismissed || 0) / w.n) : '–'}</td></tr>`; }).join('');
+  const yearTbl = `<div class="panel"><div class="panel-h"><h3>Year by year</h3></div><div class="tbl-wrap"><table class="t tr"><thead><tr><th>Year</th><th class="num">Leavers</th><th class="num">Average headcount</th><th class="num">Turnover, a year</th><th class="num">Median service at leaving</th><th class="num">Left within 3 months</th><th class="num">Resigned</th><th class="num">Contract ended</th><th class="num">Dismissed</th></tr></thead><tbody>${yrRows}</tbody></table></div>
+    <div class="panel-foot small muted">Turnover for a year still running is scaled up to a full year. Service and the 3-month share only count leavers with a start date on record. Shares are of all leavers that year.</div></div>`;
+
+  // mix: last 12 months against the 12 before
+  let mix = '';
+  if (rec) {
+    const R = rec, P = pri;
+    const dens = (r, p) => ({ r, p: P ? p : 0 });
+    const reasonRows = Object.keys(M_.REASONS).map(n => ({ label: n + '. ' + M_.REASONS[n], r: R.reasons[n] || 0, p: P ? (P.reasons[n] || 0) : 0 }));
+    if (R.noReason || (P && P.noReason)) reasonRows.push({ label: 'No numbered reason', r: R.noReason, p: P ? P.noReason : 0 });
+    const kindRows = KIND_ORDER.map(k => ({ label: M_.KIND_LABEL[k], r: R.kinds[k] || 0, p: P ? (P.kinds[k] || 0) : 0 }));
+    const tenRows = R.ten.out.map((b, i) => ({ label: b.label, r: b.n, p: P ? P.ten.out[i].n : 0 }));
+    const ageRows = R.age.out.map((b, i) => ({ label: b.label, r: b.n, p: P ? P.age.out[i].n : 0 }));
+    const stAll = [...new Set([...Object.keys(R.stations), ...(P ? Object.keys(P.stations) : [])])];
+    const stRows = stAll.map(s => ({ s, r: R.stations[s] || 0, p: P ? (P.stations[s] || 0) : 0 })).sort((a, b) => (b.r - a.r) || (b.p - a.p)).slice(0, 12);
+    const stTbl = `<div class="panel"><div class="panel-h"><h3>By station</h3><span class="small muted">${stAll.length > 12 ? 'The 12 with most leavers' : plural(stAll.length, 'station')}</span></div><div class="tbl-wrap"><table class="t tr"><thead><tr><th>Station</th>${P ? '<th class="num">Prior</th>' : ''}<th class="num">Last 12 mo</th>${P ? '<th class="num">Change</th>' : ''}<th class="num">Avg headcount</th><th class="num">Turnover</th></tr></thead><tbody>
+      ${stRows.map(x => { const av = D.stAvg(x.s, R.a, R.b); return `<tr><td>${esc(x.s)}</td>${P ? `<td class="num">${fmt(x.p)}</td>` : ''}<td class="num"><b>${fmt(x.r)}</b></td>${P ? `<td class="num"><span class="delta">${x.r === x.p ? '0' : (x.r > x.p ? '+' : '−') + Math.abs(x.r - x.p)}</span></td>` : ''}<td class="num">${av ? fmt(av, 1) : '–'}</td><td class="num">${av >= 5 ? (100 * x.r / av).toFixed(0) + '%' : '<span class="muted">–</span>'}</td></tr>`; }).join('')}</tbody></table></div>
+      <div class="panel-foot small muted">Prior and Last are leavers in the 12 months before and the last 12 months. Station is where the person was posted when they left. Headcount is the average over the 12 months for people posted there; turnover is left blank where that is under 5 people.</div></div>`;
+    const divRows = Object.keys({ ...R.divs, ...(P ? P.divs : {}) }).map(d => ({ label: d, r: R.divs[d] || 0, p: P ? (P.divs[d] || 0) : 0 }));
+    mix = `<div class="sect"><h3>How the mix has changed</h3><p class="showing">Last 12 months (${esc(lvWinLabel(R))})${P ? ' against the 12 before (' + esc(lvWinLabel(P)) + ')' : ''}.</p></div>
+      <div class="tr-grid">
+        <div>${lvCompare('Reasons given', 'Shares are of all departures in the period; a person can give more than one reason, so shares add to more than 100%.', reasonRows, R, P, dens(R.n, P && P.n))}</div>
+        <div>${lvCompare('How it ended', '', kindRows, R, P, dens(R.n, P && P.n))}</div>
+        <div>${lvCompare('Service at leaving', `Leavers without a start date on record are left out${R.ten.unknown + (P ? P.ten.unknown : 0) ? ' (' + fmt(R.ten.unknown) + (P ? ' in the last 12 months, ' + fmt(P.ten.unknown) + ' before' : '') + ')' : ''}.`, tenRows, R, P, dens(R.servedN, P && P.servedN))}</div>
+        <div>${lvCompare('Age at leaving', `Leavers without a date of birth are left out${R.age.unknown + (P ? P.age.unknown : 0) ? ' (' + fmt(R.age.unknown) + (P ? ' in the last 12 months, ' + fmt(P.age.unknown) + ' before' : '') + ')' : ''}.`, ageRows, R, P, dens(R.n - R.age.unknown, P && P.n - P.age.unknown))}</div>
+        ${div ? '' : `<div>${lvCompare('By division', '', divRows, R, P, dens(R.n, P && P.n))}</div>`}
+        <div>${stTbl}</div>
+      </div>`;
+  }
+
+  return head('Leavers', sub, csvBtn) + lvTabs() + divSel + kpis + insights + `
+    <div class="panel"><div class="panel-h"><h3>Leavers per month</h3><div class="legend-i"><span><i style="background:var(--bad)"></i>Left</span><span><i style="background:var(--brand-2)"></i>Three-month average</span></div></div><div class="panel-b">${monthly}${months[N - 1].partial ? `<p class="small muted">Faded bar: ${C.MONTHS[months[N - 1].m - 1]} up to today.</p>` : ''}</div></div>
+    <div class="two">
+      <div class="panel"><div class="panel-h"><h3>Turnover, rolling 12 months</h3></div><div class="panel-b">${rollChart}<p class="small muted">Each point is the 12 months ending that month: leavers ÷ average headcount.</p></div></div>
+      <div class="panel"><div class="panel-h"><h3>Year on year, by calendar month</h3><div class="legend-i">${yLines.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div></div><div class="panel-b">${season}</div></div>
+    </div>
+    ${yearTbl}
+    ${mix}`;
+}
+
+function csvLvTrends() {
+  const D = lvTrendData(S.lvDiv || '');
+  downloadCSV('leavers-trends-monthly' + (S.lvDiv ? '-' + S.lvDiv.toLowerCase() : '') + '.csv',
+    ['Month', 'Leavers', 'Headcount at month end', 'Leavers, 12 months to this month', 'Turnover, 12 months to this month (%)', 'Complete month'],
+    D.months.map((mo, i) => [C.MONTHS[mo.m - 1] + ' ' + mo.y, mo.n, D.hcAll[i + 1], D.roll[i] ? D.roll[i].n : '', D.roll[i] && D.roll[i].pct != null ? +D.roll[i].pct.toFixed(2) : '', mo.partial ? 'no' : 'yes']));
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act="lv-tab"],[data-act="lv-trend-csv"]');
+  if (!t || !S.model) return;
+  if (t.dataset.act === 'lv-tab') { S.lvTab = t.dataset.v; render(); } else csvLvTrends();
+});
+document.addEventListener('change', e => {
+  if (e.target.matches && e.target.matches('[data-lvdiv]') && S.model) { S.lvDiv = e.target.value; render(); }
+});
+
 
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act="lv-pick"],[data-act="lv-all"],[data-act="lv-csv"]');
