@@ -582,7 +582,7 @@ dl.facts.inline dd { font-weight: 600; }
   .filters .seg button { padding: .4rem .6rem; }
   .fg.grow { flex-basis: 170px; }
 }
-@media (max-width: 1380px) {
+@media (max-width: 1640px) {
   .bar-in { flex-wrap: wrap; row-gap: 0; }
   .tabs { order: 3; flex-basis: 100%; margin: 0 calc(-1 * var(--pad)); padding: 0 var(--pad); border-top: 1px solid var(--line); }
   .bar-actions { margin-left: auto; }
@@ -604,6 +604,121 @@ dl.facts.inline dd { font-weight: 600; }
 .sk-dq-t { max-height: 520px; overflow: auto; }
 .sk-dq-t th { position: sticky; top: 0; z-index: 1; }
 @media (max-width: 1250px) { .t.sk-emp-t .mcol { display: none; } }
+
+/* ---------- overtime ---------- */
+:root { --ot-up: #D2691E; --ot-up-soft: #FBE8D8; --ot-dn: #2E62B9; --ot-dn-soft: #DFE8F8; }
+:root[data-theme="dark"] { --ot-up: #F09A55; --ot-up-soft: #3D2716; --ot-dn: #7FA6EE; --ot-dn-soft: #1C2F52; }
+.co.sh { color: var(--ot-up); background: var(--ot-up-soft); }
+.ot-bar .filters-in { padding: 12px 16px; }
+.ot-c { display: inline-block; min-width: 3.1em; padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: .867rem; text-align: right; cursor: default; }
+.ot-c.up { color: var(--ot-up); background: var(--ot-up-soft); }
+.ot-c.dn { color: var(--ot-dn); background: var(--ot-dn-soft); }
+.ot-c.up.big { background: var(--ot-up); color: #fff; }
+.ot-c.dn.big { background: var(--ot-dn); color: #fff; }
+:root[data-theme="dark"] .ot-c.big { color: #0A1322; }
+.ot-c.ok { color: var(--muted); font-weight: 500; }
+.ot-c.skip { color: var(--warn); border: 1px dashed currentColor; text-align: center; }
+.ot-n.up { color: var(--ot-up); } .ot-n.dn { color: var(--ot-dn); }
+.ot-t.up { color: var(--ot-up); font-weight: 600; } .ot-t.dn { color: var(--ot-dn); font-weight: 600; }
+.t.ot-t thead th { position: sticky; top: 0; z-index: 2; }
+.t.ot-t td:first-child, .t.ot-t th:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 190px; }
+.t.ot-t thead th:first-child { z-index: 3; }
+.t.ot-t td.fcol { background: color-mix(in srgb, var(--amber-soft) 60%, var(--surface)); }
+.t tr.frow td { background: var(--amber-soft); }
+.chart .zero { stroke: var(--ink-2); stroke-width: 1.2; }
+.ot-fix { display: grid; gap: 12px; }
+.ot-d summary { cursor: pointer; }
+.ot-d[open] summary { margin-bottom: 8px; }
+.ot-list { display: flex; flex-wrap: wrap; gap: 6px 18px; max-height: 260px; overflow: auto; padding: 2px; }
+.ot-ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: .933rem; }
+.ic-ot .ot-c { min-width: 2.8em; }
+@media (max-width: 1250px) { .t.ot-t .mcol { display: none; } }
+
+/* ---------- top-bar menus, Hide names, toast ---------- */
+.menu-wrap { position: relative; }
+.menu { width: 340px; gap: 6px; }
+.menu-h { margin-bottom: 2px; }
+.menu-i { display: grid; gap: 1px; text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--surface); cursor: pointer; }
+.menu-i:hover:not(:disabled) { border-color: var(--brand); }
+.menu-i:disabled { opacity: .5; cursor: default; }
+.menu-i span, .pv-go span { font-size: .8rem; color: var(--muted); }
+.pv-list { display: grid; gap: 4px; max-height: 300px; overflow: auto; }
+.pv { display: flex; gap: 4px; align-items: stretch; }
+.pv-go { flex: 1; display: grid; gap: 1px; text-align: left; padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--surface); cursor: pointer; min-width: 0; }
+.pv-go:hover { border-color: var(--brand); }
+.pv-go b, .pv-go span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-new { display: flex; gap: 6px; margin-top: 6px; }
+.pv-new input { flex: 1; min-width: 0; padding: .35rem .55rem; border: 1px solid var(--line-2); border-radius: var(--r-s); background: var(--surface); }
+.pv-foot { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 4px; }
+.pv-foot .small { flex-basis: 100%; }
+.btn.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+:root[data-theme="dark"] .btn.on { background: var(--amber); border-color: var(--amber); }
+.btn.on:hover { color: #fff; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 12px); z-index: 70; opacity: 0; pointer-events: none;
+         background: var(--ink); color: var(--surface); padding: 9px 16px; border-radius: var(--r-s); font-size: .9rem; max-width: min(560px, 92vw); transition: opacity .18s, transform .18s; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+.modal-bg { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 35%, transparent); padding: 16px; }
+.modal { background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-m); padding: 20px 22px; max-width: 460px; display: grid; gap: 10px; box-shadow: 0 12px 32px rgba(10, 20, 30, .25); }
+.modal p { color: var(--ink-2); }
+
+/* ---------- print ---------- */
+.print-head, .snap-note { display: none; }
+#print-all { position: absolute; left: -12000px; top: 0; width: 1060px; }
+.ph-top { display: flex; gap: 16px; align-items: center; border-bottom: 2px solid #14325F; padding-bottom: 10px; margin-bottom: 14px; }
+.ph-top img { height: 46px; }
+.ph-t { font-size: 1.45rem; font-weight: 700; color: #14325F; }
+.ph-s { color: #3D4B65; font-size: .9rem; margin-top: 2px; }
+.ph-toc { margin: 8px 0 0; padding-left: 20px; color: #3D4B65; }
+.pr-title { font-size: 1.2rem; font-weight: 700; color: #14325F; border-bottom: 1px solid #B8C3D5; padding-bottom: 4px; margin-bottom: 12px; }
+.pr-title span { display: block; font-size: .8rem; font-weight: 500; color: #69778F; }
+body.snapshot .snap-note { display: block; padding: 10px var(--pad); background: #FFF1DC; color: #5A3600; font-size: .9rem; }
+body.snapshot .print-head, body.snapshot #print-all { display: block; }
+body.snapshot #print-all { position: static; width: auto; padding: 18px var(--pad); }
+body.snapshot .print-head { padding: 18px var(--pad) 0; }
+@page { size: A4 landscape; margin: 11mm 10mm; }
+@media print {
+  :root, :root[data-theme="dark"] {
+    --brand: #14325F; --brand-2: #234C8C; --brand-red: #C11E26; --brand-soft: #E5EBF5;
+    --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F5F7FB; --sunk: #E5E9F1;
+    --ink: #0F1E3A; --ink-2: #3D4B65; --muted: #69778F; --line: #D9DFEA; --line-2: #B8C3D5;
+    --amber: #14325F; --amber-ink: #FFFFFF; --amber-soft: #E4EAF5; --amber-line: #14325F;
+    --as: #2E62B9; --as-soft: #DFE8F8; --bx: #0D8474; --bx-soft: #D3EEEA;
+    --ok: #22804A; --warn: #A15C00; --warn-soft: #FFF1DC; --bad: #B4231B; --bad-soft: #FBE4E1;
+    --c1: #2E62B9; --c2: #E0662A; --c3: #22804A; --c4: #8E44AD; --c5: #C11E26; --c6: #0B7A8C;
+    --ot-up: #D2691E; --ot-up-soft: #FBE8D8; --ot-dn: #2E62B9; --ot-dn-soft: #DFE8F8;
+    --shadow: none; color-scheme: light;
+  }
+  html { font-size: 10.5px; }
+  body { background: #fff !important; border: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bar, .filters, .tip, .overlay, .toast, .modal-bg, .snap-note, .menu, #file-input, #pv-input,
+  .ot-bar, .sk-bar, .io-bar, .lv-bar, .head-acts, .card-acts, .btn, .list-search, .ind-list, details:not([open]) .ot-list { display: none !important; }
+  .print-head { display: block !important; padding: 0 0 4px; }
+  body.print-all #root, body.print-all .print-head#print-head { display: none !important; }
+  body.print-all #print-all { display: block !important; position: static; width: auto; }
+  main, body.snapshot #print-all, body.snapshot .print-head { padding: 0 !important; }
+  .pr-sec { break-before: page; }
+  .pr-sec:first-of-type { break-before: auto; }
+  .print-head + .pr-sec { break-before: page; }
+  .panel, .kpi { box-shadow: none !important; break-inside: avoid; }
+  .panel:has(table.t tbody tr:nth-child(25)) { break-inside: auto; }
+  .tbl-wrap, .tbl-wrap.tall, .li-scroll, .fix-wrap, .sk-dq-t, .ot-list, .mp-wrap { max-height: none !important; overflow: visible !important; }
+  .t th, .t td, .t thead th, table.lv td:first-child, table.lv th:first-child, .t.mp tbody th { position: static !important; }
+  table.t { font-size: .9rem; }
+  .t th, .t td { padding: 4px 6px; }
+  .t.ot-t, .t.emp, .t.sk-emp-t { font-size: .78rem; }
+  .t.ot-t th, .t.ot-t td, .t.emp th, .t.emp td { padding: 3px 4px; }
+  .t.ot-t td:first-child, .t.emp td:first-child { min-width: 0 !important; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  .chart { height: auto !important; min-height: 0 !important; }
+  .chart svg { width: 100% !important; height: auto !important; max-height: 78mm; }
+  .ov-grid, .two, .dep-grid, .lv-pair { grid-template-columns: minmax(0, 1fr) !important; }
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .ind, .cmp, .files-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .person .pn { text-decoration: none !important; }
+  .t.top .mcol, .t.ot-t .mcol, .t.sk-emp-t .mcol { display: table-cell !important; }
+  a { color: inherit; }
+}
 </style>
 </head>
 <body>
@@ -779,7 +894,8 @@ function matchSheets(names, wanted) {
   }
   return found;
 }
-const PAYROLL_NAME = /^(\d{1,2})(as|bx)$/i;
+// Company then a two-digit month: AS01 … AS12, BX01 … BX12 (AS1, AS-01 and as_01 are read too)
+const PAYROLL_NAME = /^(as|bx)[\s_-]?(\d{1,2})$/i;
 
 function classify(fileName, sheetNames) {
   const hr = matchSheets(sheetNames, HR_SHEETS);
@@ -790,7 +906,7 @@ function classify(fileName, sheetNames) {
   if (print) {
     const base = fileName.replace(/\.[^.]+$/, '').trim();
     const m = PAYROLL_NAME.exec(base);
-    if (m && +m[1] >= 1 && +m[1] <= 12) return { kind: 'payroll', sheet: print, month: +m[1], company: m[2].toUpperCase() };
+    if (m && +m[2] >= 1 && +m[2] <= 12) return { kind: 'payroll', sheet: print, month: +m[2], company: m[1].toUpperCase() };
     return { kind: 'payroll-unnamed', sheet: print, guess: guessPayroll(base) };
   }
   if (isSickBook(sheetNames)) return { kind: 'sick', sheets: sickCandidates(sheetNames) };
@@ -1161,6 +1277,73 @@ function parseSick(wb, sheet) {
   return out;
 }
 
+/* ---------- standard shift workbook --------------------------------------
+   One sheet with NAME, ID, CERTIFICATION and STANDARD SHIFT DURATION HOURS.
+   ID is the payroll employee Code. CERTIFICATION BX means the BX payroll;
+   DCA and NON DCA mean AS. Anything else is matched against either company. */
+const SHIFT_FIELDS = {
+  id: ['ID', 'EMPLOYEE CODE', 'CODE', 'ΚΩΔΙΚΟΣ'], name: ['NAME', 'ΟΝΟΜΑ', 'ΟΝΟΜΑΤΕΠΩΝΥΜΟ'],
+  cert: ['CERTIFICATION', 'CERT'],
+  hours: ['STANDARD SHIFT DURATION HOURS', 'STANDARD SHIFT DURATION', 'STANDARD SHIFT HOURS', 'SHIFT DURATION HOURS', 'SHIFT HOURS', 'SHIFT DURATION'],
+};
+function shiftHeaderRow(ws) {
+  const rg = range(ws);
+  for (let r = rg.s.r; r <= Math.min(rg.e.r, rg.s.r + 5); r++) {
+    const c = findCols(ws, r, SHIFT_FIELDS);
+    if (c.id >= 0 && c.hours >= 0) return { r, cols: c };
+  }
+  return null;
+}
+function findShiftSheet(wb, names) {
+  for (const n of names) { const ws = wb.Sheets[n]; if (ws && shiftHeaderRow(ws)) return n; }
+  return null;
+}
+function certCompany(cert) {
+  const f = normLoose(cert);
+  if (f === 'BX') return 'BX';
+  if (f === 'DCA' || f === 'NONDCA') return 'AS';
+  return '';
+}
+function parseShifts(wb, sheet) {
+  const ws = wb.Sheets[sheet], rg = range(ws), hr = shiftHeaderRow(ws);
+  const out = { sheet, rows: [], issues: [], missing: [], blank: 0 };
+  if (!hr) { out.error = 'No header row with ID and STANDARD SHIFT DURATION HOURS was found.'; return out; }
+  const { r: h, cols } = hr;
+  if (cols.cert < 0) out.missing.push('CERTIFICATION');
+  const get = (r, k) => cols[k] >= 0 ? cell(ws, r, cols[k]) : undefined;
+  for (let r = h + 1; r <= rg.e.r; r++) {
+    const idV = get(r, 'id'), hV = get(r, 'hours');
+    if (isBlank(idV) && isBlank(hV)) { out.blank++; continue; }
+    const id = codeText(idV), idKey = digitsKey(idV), cert = cleanText(get(r, 'cert'));
+    const ref = col(cols.hours) + (r + 1);
+    if (!idKey) { out.issues.push({ lv: 'warn', row: r + 1, msg: `No usable ID (hours ${showVal(hV)}).`, effect: 'Skipped' }); continue; }
+    const hours = typeof hV === 'number' ? hV : numOrNull(hV);
+    if (hours == null || !(hours > 0 && hours <= 24)) { out.issues.push({ lv: 'bad', row: r + 1, msg: `ID ${id}: shift length in ${ref} is “${isBlank(hV) ? 'blank' : showVal(hV)}”, not a number of hours between 1 and 24.`, effect: 'Skipped' }); continue; }
+    out.rows.push({ row: r + 1, id, idKey, name: cleanText(get(r, 'name')), cert, company: certCompany(cert), hours });
+  }
+  // the same ID twice: harmless if the hours agree, a conflict if they don't (first row wins)
+  const by = new Map();
+  for (const x of out.rows) { const k = (x.company || '?') + ':' + x.idKey; const a = by.get(k) || []; a.push(x); by.set(k, a); }
+  out.dupes = 0; out.conflicts = 0;
+  const keep = [];
+  for (const [, a] of by) {
+    keep.push(a[0]);
+    if (a.length < 2) continue;
+    const hs = [...new Set(a.map(x => x.hours))];
+    if (hs.length > 1) {
+      out.conflicts++;
+      a[0].conflict = a.map(x => ({ row: x.row, hours: x.hours, cert: x.cert }));
+      out.issues.push({ lv: 'warn', row: a[0].row, msg: `ID ${a[0].id} is on rows ${a.map(x => x.row).join(', ')} with different shift lengths (${a.map(x => x.hours + ' h' + (x.cert ? ' ' + x.cert : '')).join(', ')}).`, effect: `Using row ${a[0].row}: ${a[0].hours} h` });
+    } else {
+      out.dupes += a.length - 1;
+      const certs = [...new Set(a.map(x => x.cert))];
+      out.issues.push({ lv: 'info', row: a[0].row, msg: `ID ${a[0].id} is listed ${a.length} times (rows ${a.map(x => x.row).join(', ')})${certs.length > 1 ? ' with certifications ' + certs.join(' and ') : ''}, all ${a[0].hours} h.`, effect: 'Counted once' });
+    }
+  }
+  out.rows = keep.sort((a, b) => a.row - b.row);
+  return out;
+}
+
 /* ---------- reading an ArrayBuffer ------------------------------------- */
 
 function peekSheets(buf) {
@@ -1175,7 +1358,7 @@ root.Core = {
   fold, normHeader, normLoose, searchKey, nameKey, isBlank, num, numComma, digitsKey, codeText, cleanText,
   DAY, dayOf, toDay, dayParts, dayISO, todayDay, monthEnd, daysInMonth, MONTHS, MON,
   findCols, classify, guessPayroll, parsePayroll, parseHR, parseManpower, peekSheets, readSheets,
-  parseSick, findSickSheet, isSickBook, sickCandidates,
+  parseSick, findSickSheet, isSickBook, sickCandidates, parseShifts, findShiftSheet,
   HR_SHEETS, MP_SHEETS, DIVS,
 };
 if (typeof module !== 'undefined') module.exports = root.Core;
@@ -1367,6 +1550,7 @@ function build(S) {
       key: p.key, aka: p.aka, onPayroll: true, rows: p.rows,
       surname: longest(p.surnames), first: longest(p.firsts),
       codes, companies: Object.keys(codes).sort(), dept: depts[0] || '', depts,
+      codeKeys: Object.fromEntries(Object.entries(p.codeKeys).map(([co, set]) => [co, [...set]])),   // matching keys; never shown, so Hide names leaves them alone
       rate: rs.length ? { mean: rs.reduce((a, b) => a + b, 0) / rs.length, min: Math.min(...rs), max: Math.max(...rs) } : null,
       hr: null, _p: p,
     });
@@ -1393,7 +1577,7 @@ function build(S) {
       hrOnly++;
       people.push({
         key: 'H:' + h.aka, aka: h.aka, onPayroll: false, rows: [], surname: '', first: '', hrName: h.name,
-        codes: {}, companies: [], dept: '', depts: [], rate: null, hr: h,
+        codes: {}, codeKeys: {}, companies: [], dept: '', depts: [], rate: null, hr: h,
       });
     }
   }
@@ -1442,7 +1626,10 @@ if (typeof module !== 'undefined') module.exports = root.Model;
 <script>
 /* ==========================================================================
    app.js — in-memory state and UI. Data derived from files lives only in the
-   `S` object below; nothing is written to any storage or sent anywhere.
+   `S` object below; nothing from the files is written to any storage or sent
+   anywhere. The one exception to "memory only" is Saved views: their filter
+   settings (never names, hours or other file contents) are kept in this
+   browser's localStorage so they survive a reload.
    ========================================================================== */
 (function () {
 'use strict';
@@ -1463,6 +1650,10 @@ const ICON = {
   trash: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/></svg>',
   moon: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.8A5.8 5.8 0 016.2 2.5a5.8 5.8 0 107.3 7.3z"/></svg>',
   sun: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9L13 13M3 13l1.1-1.1M11.9 4.1L13 3"/></svg>',
+  eye: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.2 8S3.8 3.2 8 3.2 14.8 8 14.8 8 12.2 12.8 8 12.8 1.2 8 1.2 8z"/><circle cx="8" cy="8" r="2.2"/></svg>',
+  eyeOff: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.2 3.5A6.6 6.6 0 018 3.2C12.2 3.2 14.8 8 14.8 8a12 12 0 01-1.9 2.5M4.1 4.6C2.2 5.9 1.2 8 1.2 8s2.6 4.8 6.8 4.8a6.3 6.3 0 003.4-1M6.4 6.5a2.2 2.2 0 003.1 3.1M2 2l12 12"/></svg>',
+  bookmark: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 1.8h8v12.4L8 11.2l-4 3V1.8z"/></svg>',
+  out: '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5.5V1.8h8v3.7M4 11.5H2.2V5.5h11.6v6H12M4 9h8v5.2H4z"/></svg>',
 };
 
 /* ---------- state (memory only) ---------- */
@@ -1473,6 +1664,9 @@ const fresh = () => ({
   hr: null,             // {fileId, hires, exits, stats, missing}
   mp: null,             // {fileId, sheets, months, stations, divisions}
   sick: [],             // one per sick leave sheet: {fileId, location, dataYear, people, issues…}
+  shifts: null,         // standard shift workbook: {fileId, rows, issues, conflicts…}
+  ot: { weekly: 40, tol: 1, useHR: true, useSick: true, only: '', sort: { key: 'over', dir: -1 } },
+  anon: false,          // Hide names: names, codes, Α.Κ.Α. and free text replaced on screen and in every export
   sk: { year: 0, loc: '', div: '', from: 1, to: 0, q: '', sort: { key: 'days', dir: -1 }, all: false, more: false },
   pendingBufs: {},      // fileId → ArrayBuffer, only for payroll files awaiting month/company
   busy: null,           // {step, done, total, file}
@@ -1495,7 +1689,7 @@ let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light
 const logoSrc = (window.ICTS_LOGO || '').trim();
 
 /* ---------- ingest pipeline: payroll → HR → merge → derive ---------- */
-const STEPS = [['read', 'Reading files'], ['payroll', 'Payroll'], ['hr', 'Hirings & departures'], ['sick', 'Sick leave'], ['merge', 'Merge'], ['derive', 'Derive']];
+const STEPS = [['read', 'Reading files'], ['payroll', 'Payroll'], ['hr', 'Hirings & departures'], ['sick', 'Sick leave & shifts'], ['merge', 'Merge'], ['derive', 'Derive']];
 
 async function ingest(list) {
   if (!window.XLSX || !list.length) return;   // the upload screen already explains a missing reader
@@ -1566,6 +1760,17 @@ async function ingest(list) {
     try {
       const names = it.cls.kind === 'sick' ? it.cls.sheets : C.peekSheets(it.buf);
       const wb = C.readSheets(it.buf, names, true);
+      const shSheet = it.cls.kind === 'unknown' ? C.findShiftSheet(wb, names) : null;
+      if (shSheet) {
+        const r = C.parseShifts(wb, shSheet);
+        Object.assign(it.entry, { kind: 'shifts', cls: { kind: 'shifts' } });
+        if (r.error) { Object.assign(it.entry, { status: 'error', note: r.error }); continue; }
+        if (S.shifts) markReplaced(S.shifts.fileId, it.entry);
+        S.shifts = Object.assign(r, { fileId: it.entry.id });
+        const serious = r.issues.filter(x => x.lv !== 'info').length;
+        Object.assign(it.entry, { status: serious ? 'warn' : 'ok', note: plural(r.rows.length, 'employee') + (serious ? ', ' + plural(serious, 'row') + ' to check' : '') });
+        continue;
+      }
       const sheet = C.findSickSheet(wb, names);
       if (!sheet) { if (it.cls.kind === 'sick') Object.assign(it.entry, { status: 'error', note: 'No sheet with EMPLOYEE CODE (or ID), NAME and JANUARY FROM headers was found.' }); continue; }
       const r = C.parseSick(wb, sheet);
@@ -1605,10 +1810,12 @@ function markReplaced(oldId, byEntry) {
 async function rebuild() {
   const g = gen;
   S.busy = { step: 'merge', done: 0, total: 1, file: '' }; renderProgress(); await tick(); if (g !== gen) return;
+  anonRestore();
   const model = window.Model ? window.Model.build(S) : basicModel();
   S.busy = { step: 'derive', done: 0, total: 1, file: '' }; renderProgress(); await tick(); if (g !== gen) return;
   S.model = model;
   S.busy = null;
+  if (S.anon && window.Model) anonApply();
   if (!S.landed && Object.keys(S.payroll).length) {
     S.landed = true;
     S.view = warnings().some(w => w[0] !== 'info') ? 'files' : 'overview';
@@ -1642,6 +1849,7 @@ function removeFile(id) {
   if (S.hr && S.hr.fileId === id) S.hr = null;
   if (S.mp && S.mp.fileId === id) S.mp = null;
   S.sick = S.sick.filter(b => b.fileId !== id);
+  if (S.shifts && S.shifts.fileId === id) S.shifts = null;
   if (!S.files.length) { clearAll(); return; }
   rebuild();
 }
@@ -1671,9 +1879,10 @@ function resolveAll() {
   rebuild();
 }
 function clearAll() {
-  const y = S.year;
+  const y = S.year, anon = S.anon, ot = S.ot;
   gen++;
-  S = fresh(); S.year = y;
+  anonRestore();
+  S = fresh(); S.year = y; S.anon = anon; S.ot = ot;
   const inp = $('#file-input'); if (inp) inp.value = '';
   showUpload();
 }
@@ -1725,8 +1934,15 @@ function warnings() {
     if (n) out.push(['warn', label + ' (' + b.sheet + '): ' + plural(n, 'sick leave entry needs', 'sick leave entries need') + ' checking. They are listed under Data quality on the Sick leave tab.']);
     if (b.missing.length) out.push(['info', label + ' is missing: ' + b.missing.join(', ') + '.']);
   }
+  if (S.shifts) {
+    const f = S.files.find(x => x.id === S.shifts.fileId), label = f ? f.name : 'The standard shift file';
+    const bad = S.shifts.issues.filter(i => i.lv === 'bad').length;
+    if (S.shifts.conflicts) out.push(['warn', label + ': ' + plural(S.shifts.conflicts, 'ID is', 'IDs are') + ' listed with two different shift lengths. The first row is used; they are listed on the Overtime tab.']);
+    if (bad) out.push(['warn', label + ': ' + plural(bad, 'row has', 'rows have') + ' no usable shift length and ' + (bad === 1 ? 'was' : 'were') + ' skipped.']);
+    if (S.shifts.missing.length) out.push(['info', label + ' has no CERTIFICATION column, so each ID is matched against both companies.']);
+  }
   const unk = S.files.filter(f => f.status === 'unknown');
-  unk.forEach(f => out.push(['warn', f.name + ' was not recognised: it has no Print sheet, and not the sheets of the HR, manpower or sick leave workbooks.']));
+  unk.forEach(f => out.push(['warn', f.name + ' was not recognised: it has no Print sheet, and not the sheets of the HR, manpower, sick leave or standard shift workbooks.']));
   return out;
 }
 
@@ -1746,7 +1962,7 @@ function showUpload() {
     <div class="up-grid">
       <section>
         <h1>Employee hour analysis</h1>
-        <p class="lede">Hours by person, department and company from the AS and BX payroll exports, joined to the hirings and departures workbook. Sick leave by employee and month from the sick leave workbooks.</p>
+        <p class="lede">Hours by person, department and company from the AS and BX payroll exports, joined to the hirings and departures workbook. Sick leave by employee and month from the sick leave workbooks. Overtime and short months from each person’s standard shift.</p>
         <div class="year-row">
           <label for="year">Year</label>
           <input id="year" type="number" min="2000" max="2100" value="${S.year}">
@@ -1754,12 +1970,12 @@ function showUpload() {
         </div>
         <div class="drop" id="drop">
           <strong>Drop this year’s files here</strong>
-          <p>AS and BX payroll for each month (<b>1as.xlsx</b>, <b>1bx.xlsx</b> …), the latest ΠΡΟΣΛΗΨΕΙΣ & ΑΠΟΧΩΡΗΣΕΙΣ workbook, the manpower report if you have it, and the sick leave workbook for each location. All at once is fine.</p>
+          <p>AS and BX payroll for each month (<b>AS01.xlsx</b>, <b>BX01.xlsx</b> …), the latest ΠΡΟΣΛΗΨΕΙΣ & ΑΠΟΧΩΡΗΣΕΙΣ workbook, the manpower report if you have it, the sick leave workbook for each location, and the standard shift list (ID, CERTIFICATION, STANDARD SHIFT DURATION HOURS) for overtime. All at once is fine.</p>
           <div class="drop-actions">
             <button class="btn primary" data-act="pick">${ICON.plus}Choose files</button>
           </div>
         </div>
-        <p class="privacy">${ICON.lock}<span>Files are read inside this tab. Nothing is uploaded or saved, and closing or reloading the tab forgets everything.</span></p>
+        <p class="privacy">${ICON.lock}<span>Files are read inside this tab. Nothing is uploaded or saved, and closing or reloading the tab forgets everything. Saved views keep only filter settings, in this browser.</span></p>
         ${window.XLSX ? '' : '<p class="lib-error">The spreadsheet reader (SheetJS, from cdnjs) has not loaded. Check the connection and reload the page.</p>'}
       </section>
       <section>${boardHTML()}</section>
@@ -1797,6 +2013,7 @@ function boardHTML(prev) {
       <div class="slot ${S.hr ? 'ok' : 'req'}"><b>Hirings & departures</b><span>${S.hr ? esc(hrF ? hrF.name : 'loaded') : 'Needed for status and the HR views'}</span></div>
       <div class="slot ${S.mp ? 'ok' : ''}"><b>Manpower report</b><span>${S.mp ? esc(mpF ? mpF.name : 'loaded') : 'Optional, for comparison'}</span></div>
       <div class="slot ${S.sick.length ? 'ok' : ''}"><b>Sick leave</b><span>${S.sick.length ? esc(S.sick.map(b => b.location + ' ' + (b.dataYear || '')).join(', ')) : 'One workbook per location'}</span></div>
+      <div class="slot ${S.shifts ? 'ok' : ''}"><b>Standard shifts</b><span>${S.shifts ? esc(plural(S.shifts.rows.length, 'employee')) : 'Needed for the Overtime tab'}</span></div>
     </div>
     <div class="legend"><span><i class="ok"></i>Read, matches Totals</span><span><i class="warn"></i>Read, check Totals</span><span><i class="gap"></i>Missing between loaded months</span></div>
   </div>`;
@@ -1926,10 +2143,12 @@ function searchBox(id, label) {
 /* ---------- charts (SVG drawn at the container's real width) ---------- */
 const CHARTS = {};
 function chartBox(key, h, fn) { CHARTS[key] = fn; return `<div class="chart" data-chart="${key}" style="height:${h}px"></div>`; }
-function drawCharts() {
-  document.querySelectorAll('.chart[data-chart]').forEach(el => {
+function drawCharts(root) {
+  (root || document.getElementById('app-main') || document).querySelectorAll('.chart[data-chart]').forEach(el => {
     const fn = CHARTS[el.dataset.chart]; if (!fn) return;
-    el.innerHTML = fn(Math.max(240, el.clientWidth), el.clientHeight);
+    const w = Math.max(240, el.clientWidth), h = el.clientHeight >= 60 ? el.clientHeight : (parseFloat(el.style.height) || 280);   // print styles size charts by their width
+    el.innerHTML = fn(w, h);
+    const svg = el.querySelector('svg'); if (svg && !svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);   // lets print scale it
   });
 }
 // Round gridlines, 3–6 of them, with the least empty space above the data
@@ -2149,6 +2368,7 @@ function personCard(p) {
     <div class="panel ic-chart"><div class="panel-h"><h3>Hours per month</h3>${p.companies.length > 1 && S.f.co === 'Both' ? '<div class="legend-i"><span><i style="background:var(--as)"></i>AS</span><span><i style="background:var(--bx)"></i>BX</span></div>' : ''}</div>
       <div class="panel-b">${chartBox('ind-' + p.id, 220, monthBars({ per, series: companySeries(x.by, S.f.co), focus: fm, avg: s.avg, avgLabel: 'Their average' }))}${scopeNote}</div></div>`
     : `<div class="note info">${ICON.info}<span>No payroll hours for ${S.f.co === 'Both' ? 'this person' : 'this person in ' + S.f.co} in the loaded files.</span></div>`}
+    ${otPersonPanel(p)}
     ${split}
     ${hrPanel(p)}`;
 }
@@ -2325,11 +2545,10 @@ function csvEmployees() {
   downloadCSV('employees-' + md.year + '-' + S.f.co.toLowerCase() + '.csv', header, data);
 }
 function downloadCSV(name, header, rows) {
+  if (CAPTURE) { CAPTURE.push({ name, header, rows }); return; }   // the summary pack collects tables instead
   const q = v => { v = v == null ? '' : String(v); return /[",\n\r;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   const txt = '\ufeff' + [header, ...rows].map(r => r.map(q).join(',')).join('\r\n');
-  const url = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  saveFile(name, txt, 'text/csv;charset=utf-8');
 }
 
 /* ==========================================================================
@@ -3589,9 +3808,755 @@ let skTimer = null;
 document.addEventListener('input', e => { if (e.target.matches('input[data-skq]')) { S.sk.q = e.target.value; clearTimeout(skTimer); skTimer = setTimeout(render, 140); } });
 
 
+/* ==========================================================================
+   overtime.js — hours against each person's standard shift. Payroll gives one
+   total per person per month, so "times" are months: a month counts as over
+   or under when the hours differ from the expected hours by at least the
+   tolerance (in shifts of that person's own length).
+   Expected hours = weekly hours ÷ 5 × weekdays in the month, less weekdays
+   before hire / after leaving (HR) and weekdays on sick leave (sick file).
+   ========================================================================== */
+let _wd = null;
+function weekdaysOf(year) {
+  if (_wd && _wd.year === year) return _wd.m;
+  const m = [];
+  for (let k = 1; k <= 12; k++) {
+    const a = [];
+    for (let d = C.dayOf(year, k, 1); d <= C.monthEnd(year, k); d++) { const w = new Date(d * C.DAY).getUTCDay(); if (w >= 1 && w <= 5) a.push(d); }
+    m[k] = a;
+  }
+  _wd = { year, m };
+  return m;
+}
+const OT_TOLS = [[0.5, 'half a shift'], [1, '1 shift'], [2, '2 shifts'], [3, '3 shifts']];
+const fmtSh = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(1);
+const fmtSignH = v => (v > 0.05 ? '+' : v < -0.05 ? '−' : '') + fmtH(Math.abs(Math.round(v * 10) / 10));
+
+let _ot = null;
+function otModel() {
+  const md = MD();
+  if (!md || !md.people || !S.shifts) return null;
+  const sig = JSON.stringify([S.ot.weekly, S.ot.tol, S.ot.useHR, S.ot.useSick, md.year, S.sick.map(b => b.fileId)]);
+  if (_ot && _ot.model === md && _ot.shifts === S.shifts && _ot.sig === sig) return _ot;
+
+  // payroll people by company + code
+  const idx = new Map();
+  for (const p of md.people) if (p.onPayroll) for (const co in p.codeKeys) for (const k of p.codeKeys[co]) if (!idx.has(co + ':' + k)) idx.set(co + ':' + k, p);
+  const found = new Map(), unmatchedRows = [];
+  let matchedRows = 0, crossRows = 0;
+  for (const r of S.shifts.rows) {
+    let p = null, co = r.company, cross = false;
+    if (co) p = idx.get(co + ':' + r.idKey) || null;
+    if (!p) {
+      const others = ['AS', 'BX'].filter(c => c !== co).map(c => ({ c, p: idx.get(c + ':' + r.idKey) })).filter(x => x.p);
+      if (others.length === 1) { p = others[0].p; cross = !!co; co = others[0].c; }
+    }
+    if (!p) { unmatchedRows.push(r); continue; }
+    matchedRows++; if (cross) crossRows++;
+    const a = found.get(p.id) || []; a.push({ r, co, cross }); found.set(p.id, a);
+  }
+
+  // sick weekdays per person, through the HR link (code + division)
+  const sickBy = new Map();
+  const useSick = S.ot.useSick && md.hasHR && S.sick.length > 0;
+  if (useSick) {
+    const link = skLink();
+    if (link) for (const [sp, person] of link.map) {
+      if (!person || person === 'ambiguous') continue;
+      const set = sickBy.get(person.id) || new Set();
+      for (const d of sp.days) set.add(d);
+      sickBy.set(person.id, set);
+    }
+  }
+
+  const wd = weekdaysOf(md.year), perDay = S.ot.weekly / 5, per = md.period.Both;
+  const res = new Map();
+  for (const [pid, hits] of found) {
+    const p = md.people[pid];
+    const hoursBy = new Array(13).fill(0), coH = { AS: 0, BX: 0 };
+    for (const row of p.rows) { hoursBy[row.m] += row.h; coH[row.co] += row.h; }
+    // one shift length per person; two different ones (one per company) → the company with more hours
+    const lens = [...new Set(hits.map(x => x.r.hours))];
+    const pick = lens.length > 1 ? [...hits].sort((a, b) => (coH[b.co] || 0) - (coH[a.co] || 0))[0] : hits[0];
+    const shift = pick.r.hours;
+    const sick = sickBy.get(pid);
+    const months = [];
+    const sum = { counted: 0, over: 0, under: 0, ok: 0, h: 0, exp: 0, hOver: 0, hUnder: 0, skipped: 0 };
+    for (const m of per) {
+      const h = hoursBy[m];
+      if (!(h > 0)) { months[m] = { m, h: 0, st: 'none' }; continue; }
+      let days = wd[m];
+      if (S.ot.useHR && p.hr) days = days.filter(d => M_.employedAt(p.hr, d));
+      const ne = wd[m].length - days.length;
+      const sk = sick ? days.filter(d => sick.has(d)).length : 0;
+      const exp = (days.length - sk) * perDay;
+      if (!(exp > 0)) { months[m] = { m, h, exp: 0, st: 'skip', ne, sk }; sum.skipped++; continue; }
+      const diff = h - exp, shifts = diff / shift;
+      const st = shifts >= S.ot.tol - 1e-9 ? 'over' : -shifts >= S.ot.tol - 1e-9 ? 'under' : 'ok';
+      months[m] = { m, h, exp, diff, shifts, st, ne, sk };
+      sum.counted++; sum[st]++; sum.h += h; sum.exp += exp;
+      if (diff > 0) sum.hOver += diff; else sum.hUnder -= diff;
+    }
+    res.set(pid, Object.assign(sum, {
+      p, shift, cert: pick.r.cert, row: pick.r.row, cross: hits.some(x => x.cross), lens, months,
+      net: sum.h - sum.exp, extra: sum.hOver / shift, avgH: sum.counted ? sum.h / sum.counted : 0, avgE: sum.counted ? sum.exp / sum.counted : 0,
+      perShift: sum.counted ? sum.h / sum.counted / shift : 0, sickDays: sick ? sick.size : 0,
+    }));
+  }
+  const noShift = md.people.filter(p => p.onPayroll && !res.has(p.id));
+  _ot = { model: md, shifts: S.shifts, sig, res, matchedRows, crossRows, unmatchedRows, noShift, useSick, sickLinked: sickBy.size };
+  return _ot;
+}
+
+function otScope() {
+  const o = otModel(), v = scoped();
+  if (!o) return null;
+  const rows = [], noShift = [];
+  for (const r of v.list) {
+    const x = o.res.get(r.p.id);
+    if (!x) { noShift.push(r.p); continue; }
+    if (S.ot.only && String(x.shift) !== S.ot.only) continue;
+    rows.push(x);
+  }
+  const lens = [...new Set([...o.res.values()].map(x => x.shift))].sort((a, b) => a - b);
+  if (S.ot.only && !lens.map(String).includes(S.ot.only)) S.ot.only = '';
+  return { o, v, rows, noShift, lens, per: v.per, fm: v.fm };
+}
+
+function otColumns(per, fm) {
+  const cols = [
+    { k: 'name', l: 'Employee', v: x => x.p.name, html: x => personCell(x.p), csv: x => x.p.name },
+    { k: 'codes', l: 'Codes', csvOnly: true, v: x => x.p.codeList.map(c => c.co + ' ' + c.code).join(' / ') },
+    { k: 'dept', l: 'Department', v: x => x.p.dept, html: x => `<span class="small">${esc(x.p.dept)}</span>` },
+    { k: 'cert', l: 'Certification', csvOnly: true, v: x => x.cert },
+    { k: 'shift', l: 'Shift', csvL: 'Standard shift (hours)', num: true, v: x => x.shift, f: v => fmtH(v) + ' h', fcsv: v => v },
+    { k: 'counted', l: 'Months', csvL: 'Months compared', num: true, v: x => x.counted },
+    { k: 'over', l: 'Over', csvL: 'Months over', num: true, v: x => x.over, f: v => v ? `<b class="ot-n up">${v}</b>` : '<span class="muted">0</span>' },
+    { k: 'under', l: 'Under', csvL: 'Months under', num: true, v: x => x.under, f: v => v ? `<b class="ot-n dn">${v}</b>` : '<span class="muted">0</span>' },
+    { k: 'ok', l: 'Within', csvL: 'Months within', csvOnly: true, v: x => x.ok },
+    { k: 'avgH', l: 'Avg hours', csvL: 'Average hours a month', num: true, v: x => x.avgH, f: v => fmt(v, 1), fcsv: v => +v.toFixed(1) },
+    { k: 'avgE', l: 'Avg expected', csvL: 'Average expected hours a month', num: true, v: x => x.avgE, f: v => fmt(v, 1), fcsv: v => +v.toFixed(1) },
+    { k: 'perShift', l: 'Avg shifts', csvL: 'Shifts a month (hours ÷ shift)', num: true, v: x => x.perShift, f: v => fmt(v, 1), fcsv: v => +v.toFixed(1) },
+    { k: 'hOver', l: 'Hours above', csvL: 'Hours above expected', csvOnly: true, v: x => +x.hOver.toFixed(1) },
+    { k: 'hUnder', l: 'Hours below', csvL: 'Hours below expected', csvOnly: true, v: x => +x.hUnder.toFixed(1) },
+    { k: 'net', l: 'Net', csvL: 'Net hours vs expected', num: true, v: x => x.net, f: v => `<span class="${v > 0.05 ? 'ot-t up' : v < -0.05 ? 'ot-t dn' : ''}">${fmtSignH(v)} h</span>`, fcsv: v => +v.toFixed(1) },
+    { k: 'extra', l: 'Extra shifts', csvL: 'Extra shifts (hours above ÷ shift)', num: true, v: x => x.extra, f: v => v ? fmt(v, 1) : '<span class="muted">0</span>', fcsv: v => +v.toFixed(1) },
+  ];
+  per.forEach(m => cols.push({ k: 'm' + m, l: C.MON[m - 1], num: true, month: m, nosortCsv: true,
+    v: x => x.months[m] && x.months[m].shifts != null ? x.months[m].shifts : null,
+    html: x => otCell(x.months[m], x.shift), noCsv: true }));
+  return cols;
+}
+function otCell(c, shift) {
+  if (!c || c.st === 'none') return '<span class="muted">–</span>';
+  const tipTxt = c.st === 'skip' ? `${fmtH(c.h)} h paid, but no working days expected${c.ne ? ' (' + plural(c.ne, 'weekday') + ' outside employment)' : ''}${c.sk ? ', ' + plural(c.sk, 'sick weekday') : ''}`
+    : `${fmtH(c.h)} h worked, ${fmtH(Math.round(c.exp))} h expected: ${fmtSignH(c.diff)} h, ${fmtSh(c.shifts)} shifts of ${fmtH(shift)} h${c.ne ? '. ' + plural(c.ne, 'weekday') + ' outside employment' : ''}${c.sk ? '. ' + plural(c.sk, 'sick weekday') : ''}`;
+  if (c.st === 'skip') return `<span class="ot-c skip" data-tip="${esc(tipTxt)}">?</span>`;
+  const big = Math.abs(c.shifts) >= 2 * S.ot.tol ? ' big' : '';
+  return `<span class="ot-c ${c.st === 'over' ? 'up' : c.st === 'under' ? 'dn' : 'ok'}${big}" data-tip="${esc(tipTxt)}">${fmtSh(c.shifts)}</span>`;
+}
+function otSorted(rows, cols) {
+  const col = cols.find(c => c.k === S.ot.sort.key) || cols.find(c => c.k === 'over'), dir = S.ot.sort.dir;
+  return [...rows].sort((a, b) => {
+    const x = col.v(a), y = col.v(b);
+    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir || b.over - a.over || a.p.name.localeCompare(b.p.name);
+  });
+}
+function otMonthly(rows, per) {
+  return per.map(m => {
+    let over = 0, under = 0, ok = 0, h = 0, exp = 0, hOver = 0, hUnder = 0;
+    for (const x of rows) {
+      const c = x.months[m]; if (!c || c.st === 'none' || c.st === 'skip') continue;
+      if (c.st === 'over') over++; else if (c.st === 'under') under++; else ok++;
+      h += c.h; exp += c.exp; if (c.diff > 0) hOver += c.diff; else hUnder -= c.diff;
+    }
+    return { m, over, under, ok, n: over + under + ok, h, exp, hOver, hUnder };
+  });
+}
+// people over above the line, people under below it
+function otChart(M, fm) {
+  return (w, h) => {
+    const L = 46, R = 10, T = 14, B = 24, iw = w - L - R, ih = h - T - B;
+    const top = Math.max(1, ...M.map(x => x.over)), bot = Math.max(1, ...M.map(x => x.under));
+    const sc = niceScale(Math.max(top, bot));
+    const room = ih - 30, up = room * top / (top + bot), dn = room - up, zero = T + 15 + up;   // 15 px kept free at each end for the labels
+    const yU = v => zero - v / Math.max(top, 1) * up, yD = v => zero + v / Math.max(bot, 1) * dn;
+    const band = iw / Math.max(1, M.length), bw = Math.min(46, band * 0.62);
+    let g = '';
+    const stepU = niceScale(top).step, stepD = niceScale(bot).step;
+    for (let v = stepU; v <= top + 1e-9; v += stepU) g += `<line x1="${L}" x2="${w - R}" y1="${yU(v)}" y2="${yU(v)}" class="grid"/><text x="${L - 7}" y="${yU(v) + 3.5}" class="ax" text-anchor="end">${fmt(v)}</text>`;
+    for (let v = stepD; v <= bot + 1e-9; v += stepD) g += `<line x1="${L}" x2="${w - R}" y1="${yD(v)}" y2="${yD(v)}" class="grid"/><text x="${L - 7}" y="${yD(v) + 3.5}" class="ax" text-anchor="end">${fmt(v)}</text>`;
+    M.forEach((x, i) => {
+      const cx = L + band * i + band / 2;
+      if (x.m === fm) g += `<rect x="${L + band * i + 1}" y="${T}" width="${band - 2}" height="${ih}" class="focus-band"/>`;
+      if (x.over) g += `<rect x="${cx - bw / 2}" y="${yU(x.over)}" width="${bw}" height="${zero - yU(x.over)}" style="fill:var(--ot-up)"/>` + (band >= 34 ? `<text x="${cx}" y="${yU(x.over) - 5}" class="ax bar-l" text-anchor="middle">${x.over}</text>` : '');
+      if (x.under) g += `<rect x="${cx - bw / 2}" y="${zero}" width="${bw}" height="${yD(x.under) - zero}" style="fill:var(--ot-dn)"/>` + (band >= 34 ? `<text x="${cx}" y="${yD(x.under) + 13}" class="ax bar-l" text-anchor="middle">${x.under}</text>` : '');
+      const tipTxt = C.MONTHS[x.m - 1] + `: ${plural(x.n, 'person', 'people')} compared\n${x.over} over, ${x.under} under, ${x.ok} within\n${fmtSignH(x.hOver)} h above, ${fmtSignH(-x.hUnder)} h below expected`;
+      g += `<rect x="${L + band * i}" y="${T}" width="${band}" height="${ih}" class="hit" data-tip="${esc(tipTxt)}"/>`;
+      g += `<text x="${cx}" y="${h - 7}" class="ax${x.m === fm ? ' ax-focus' : ''}" text-anchor="middle">${C.MON[x.m - 1]}</text>`;
+    });
+    g += `<line x1="${L}" x2="${w - R}" y1="${zero}" y2="${zero}" class="zero"/>`;
+    return `<svg width="${w}" height="${h}" role="img" aria-label="People over and under their expected hours, by month">${g}</svg>`;
+  };
+}
+
+function otSettings(sc) {
+  const md = MD(), o = sc.o, t = S.ot;
+  const seg = (k, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button data-act="ot-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${String(t[k]) === String(v)}">${esc(l)}</button>`).join('')}</div>`;
+  const sickOk = md.hasHR && S.sick.length > 0;
+  return `<div class="panel ot-bar"><div class="filters-in">
+    <div class="fg"><label class="fl" for="ot-weekly">Full-time hours a week</label><input id="ot-weekly" data-ot="weekly" type="number" min="1" max="84" step="0.5" value="${t.weekly}" style="width:6.5rem"></div>
+    <div class="fg"><label class="fl" for="ot-tol">Count a month when it is off by at least</label><select id="ot-tol" data-ot="tol">${OT_TOLS.map(([v, l]) => `<option value="${v}"${v === t.tol ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+    ${sc.lens.length > 1 ? `<div class="fg"><span class="fl">Shift length</span>${seg('only', [['', 'All'], ...sc.lens.map(l => [String(l), fmtH(l) + ' h'])])}</div>` : ''}
+    ${md.hasHR ? `<div class="fg"><span class="fl">Days before hire or after leaving</span>${seg('useHR', [['true', 'Leave out'], ['false', 'Count']])}</div>` : ''}
+    ${sickOk ? `<div class="fg"><span class="fl">Sick days</span>${seg('useSick', [['true', 'Leave out'], ['false', 'Count']])}</div>` : ''}
+  </div></div>`;
+}
+
+function renderOvertime() {
+  const md = MD();
+  if (!md.period.Both.length) return noPayroll();
+  if (!S.shifts) return head('Overtime', '') + emptyState('Add the standard shift list',
+    'Overtime compares each person’s monthly hours with their standard shift. Add the workbook with the columns ID, CERTIFICATION and STANDARD SHIFT DURATION HOURS. ID is the payroll employee code; BX certification means the BX payroll, DCA and NON DCA mean AS.',
+    `<button class="btn primary" data-act="pick">${ICON.plus}Add files</button>`);
+  const sc = otScope(), o = sc.o, per = sc.per, fm = sc.fm, t = S.ot;
+  const rows = sc.rows;
+  const M = otMonthly(rows, per);
+  const tot = rows.reduce((a, x) => { a.counted += x.counted; a.over += x.over; a.under += x.under; a.hOver += x.hOver; a.hUnder += x.hUnder; a.extra += x.extra; if (x.over) a.pOver++; if (x.under) a.pUnder++; return a; }, { counted: 0, over: 0, under: 0, hOver: 0, hUnder: 0, extra: 0, pOver: 0, pUnder: 0 });
+  const often = rows.filter(x => x.counted >= 3 && x.over / x.counted >= 0.5).length, oftenU = rows.filter(x => x.counted >= 3 && x.under / x.counted >= 0.5).length;
+  const tolTxt = OT_TOLS.find(x => x[0] === t.tol)[1];
+  const basis = [`Expected hours for a month are ${fmtH(t.weekly)} h a week spread over its weekdays (${fmtH(t.weekly / 5)} h a weekday)`,
+    md.hasHR && t.useHR ? 'leaving out weekdays before hire or after leaving' : '', o.useSick ? 'and weekdays on sick leave' : ''].filter(Boolean).join(', ');
+  const sub = `${plural(rows.length, 'person', 'people')} with a standard shift, ${esc(monthRange(per))} ${md.year}. ${basis}. A month counts as over or under when the hours differ by at least ${tolTxt} of that person’s own length. Hours are counted across both companies; months with no payroll hours are not compared.`;
+  const kpi = (l, val, c) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="kpi-v">${val}</div><div class="kpi-c">${c}</div></div>`;
+
+  // by shift length
+  const lenRows = sc.lens.filter(l => !t.only || String(l) === t.only).map(l => {
+    const xs = rows.filter(x => x.shift === l), n = xs.reduce((s, x) => s + x.counted, 0);
+    return { l, people: xs.length, n, h: xs.reduce((s, x) => s + x.h, 0), e: xs.reduce((s, x) => s + x.exp, 0), over: xs.reduce((s, x) => s + x.over, 0), under: xs.reduce((s, x) => s + x.under, 0) };
+  });
+
+  const cols = otColumns(per, fm).filter(c => !c.csvOnly);
+  const sorted = otSorted(rows, cols);
+  const LIMIT = 400, cut = sorted.length > LIMIT && !t.more;
+  const th = c => {
+    const on = t.sort.key === c.k, cls = (c.num ? 'num ' : '') + (c.month === fm ? 'fcol' : '') + (c.month ? ' mcol' : '');
+    return `<th class="${cls}" aria-sort="${on ? (t.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button class="sort" data-act="ot-sort" data-k="${c.k}">${esc(c.l)}<span class="ar">${on ? (t.sort.dir > 0 ? '▲' : '▼') : ''}</span></button></th>`;
+  };
+  const td = (c, x) => `<td class="${c.num ? 'num ' : ''}${c.month === fm ? 'fcol' : ''}${c.month ? ' mcol' : ''}">${c.html ? c.html(x) : c.f ? c.f(c.v(x)) : esc(c.v(x) == null ? '–' : c.v(x))}</td>`;
+
+  const fixes = [];
+  if (sc.noShift.length) fixes.push(`<details class="ot-d"><summary><b>${plural(sc.noShift.length, 'person', 'people')}</b> in view ${sc.noShift.length === 1 ? 'is' : 'are'} on payroll with no standard shift</summary>
+    <div class="ot-list">${sc.noShift.slice(0, 200).map(p => `<span>${personCell(p)}</span>`).join('')}${sc.noShift.length > 200 ? `<span class="muted small">and ${fmt(sc.noShift.length - 200)} more</span>` : ''}</div></details>`);
+  if (o.unmatchedRows.length) fixes.push(`<details class="ot-d"><summary><b>${plural(o.unmatchedRows.length, 'ID', 'IDs')}</b> in the shift list ${o.unmatchedRows.length === 1 ? 'is' : 'are'} not in the loaded payroll</summary>
+    <p class="small muted">Usually people who left before the first payroll month, or a typo in the ID.</p><div class="ot-list">${o.unmatchedRows.slice(0, 200).map(r => `<span class="code ${r.company === 'BX' ? 'bx' : r.company === 'AS' ? 'as' : 'hr'}">${esc(S.anon ? 'Row ' + r.row : r.id)}${r.cert ? ' ' + esc(r.cert) : ''}</span>`).join('')}</div></details>`);
+  if (o.crossRows) fixes.push(`<p class="small">${plural(o.crossRows, 'ID was', 'IDs were')} found only in the other company’s payroll than the certification suggests, and ${o.crossRows === 1 ? 'was' : 'were'} matched there.</p>`);
+  const conf = S.shifts.issues.filter(i => i.lv !== 'info');
+  if (conf.length) fixes.push(`<details class="ot-d"${conf.length <= 6 ? ' open' : ''}><summary><b>${plural(conf.length, 'row', 'rows')}</b> in the shift list to check</summary><ul class="ot-ul">${conf.map(i => `<li>Row ${i.row}: ${esc(S.anon ? i.msg.replace(/ID \S+/g, 'This ID') : i.msg)} <span class="muted">${esc(i.effect)}</span></li>`).join('')}</ul></details>`);
+
+  return head('Overtime', sub, `<div class="head-acts">${searchBox('q-ot', 'Search this table')}<button class="btn" data-act="ot-csv" ${rows.length ? '' : 'disabled'}>Employees CSV</button><button class="btn" data-act="ot-csv-month" ${rows.length ? '' : 'disabled'}>Monthly CSV</button></div>`) +
+    otSettings(sc) + (!rows.length ? (sc.v.list.length ? emptyState('Nobody in view has a standard shift', 'The people matching these filters are not in the shift list. Check the IDs, or loosen the filters.') : nobody()) : `
+    <div class="kpis">
+      ${kpi('Months over', fmt(tot.over), `${tot.counted ? fmt(100 * tot.over / tot.counted, 1) + '%' : '–'} of ${fmt(tot.counted)} person-months; ${plural(tot.pOver, 'person', 'people')} at least once`)}
+      ${kpi('Months under', fmt(tot.under), `${tot.counted ? fmt(100 * tot.under / tot.counted, 1) + '%' : '–'} of person-months; ${plural(tot.pUnder, 'person', 'people')} at least once`)}
+      ${kpi('Hours above expected', fmtH(Math.round(tot.hOver)), `about ${fmt(tot.extra, 0)} extra shifts; ${plural(often, 'person', 'people')} over in half their months or more`)}
+      ${kpi('Hours below expected', fmtH(Math.round(tot.hUnder)), `${plural(oftenU, 'person', 'people')} under in half their months or more`)}
+    </div>
+    <div class="ov-grid">
+      <div class="panel"><div class="panel-h"><h3>People over and under, by month</h3><div class="legend-i"><span><i style="background:var(--ot-up)"></i>Over</span><span><i style="background:var(--ot-dn)"></i>Under</span></div></div>
+        <div class="panel-b">${chartBox('ot-month', 300, otChart(M, fm))}</div></div>
+      <div class="panel"><div class="panel-h"><h3>By shift length</h3><span class="small muted">Averages per month compared</span></div><div class="tbl-wrap"><table class="t">
+        <thead><tr><th>Shift</th><th class="num">People</th><th class="num">Hours</th><th class="num">Expected</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
+        <tbody>${lenRows.map(r => `<tr><td><b>${fmtH(r.l)} h</b></td><td class="num">${fmt(r.people)}</td><td class="num">${r.n ? fmt(r.h / r.n, 1) : '–'}</td><td class="num">${r.n ? fmt(r.e / r.n, 1) : '–'}</td><td class="num">${fmt(r.over)} <span class="muted">${r.n ? fmt(100 * r.over / r.n, 0) + '%' : ''}</span></td><td class="num">${fmt(r.under)} <span class="muted">${r.n ? fmt(100 * r.under / r.n, 0) + '%' : ''}</span></td></tr>`).join('')}</tbody></table></div>
+        <div class="tbl-wrap"><table class="t">
+        <thead><tr><th>Month</th><th class="num">Over</th><th class="num">Under</th><th class="num">Hours above</th><th class="num">Hours below</th></tr></thead>
+        <tbody>${M.map(x => `<tr${x.m === fm ? ' class="frow"' : ''}><td title="${plural(x.n, 'person', 'people')} compared">${C.MON[x.m - 1]}</td><td class="num">${fmt(x.over)}</td><td class="num">${fmt(x.under)}</td><td class="num">${fmtH(Math.round(x.hOver))}</td><td class="num">${fmtH(Math.round(x.hUnder))}</td></tr>`).join('')}</tbody></table></div></div>
+    </div>
+    <div class="panel"><div class="panel-h"><h3>Employees</h3><span class="small muted">Monthly cells are shifts above (+) or below (−) expected. Hover a cell for the hours.</span></div>
+      <div class="tbl-wrap tall" id="ot-scroll" data-keep><table class="t ot-t">
+        <thead><tr>${cols.map(th).join('')}</tr></thead>
+        <tbody>${(cut ? sorted.slice(0, LIMIT) : sorted).map(x => `<tr>${cols.map(c => td(c, x)).join('')}</tr>`).join('')}</tbody></table></div>
+      ${cut ? `<div class="panel-b"><button class="btn sm" data-act="ot-more">Show all ${fmt(sorted.length)}</button></div>` : ''}
+    </div>`) +
+    (fixes.length ? `<div class="panel"><div class="panel-h"><h3>Not compared</h3></div><div class="panel-b ot-fix">${fixes.join('')}</div></div>` : '') +
+    `<p class="small muted">Annual leave, unpaid leave and public holidays are not in these files, so a month under can be planned time off. Payroll hours are monthly totals, so single shifts can’t be seen.</p>`;
+}
+
+function otPersonPanel(p) {
+  if (!S.shifts) return '';
+  const o = otModel(); if (!o) return '';
+  const x = o.res.get(p.id);
+  if (!x) return p.onPayroll ? `<div class="note info">${ICON.info}<span>Not in the standard shift list, so there is no overtime comparison for this person.</span></div>` : '';
+  const per = MD().period.Both, fm = focusMonth();
+  return `<div class="panel ic-ot"><div class="panel-h"><h3>Against a ${fmtH(x.shift)}-hour shift</h3><span class="small muted">${x.over} over, ${x.under} under, ${x.ok} within, of ${plural(x.counted, 'month')} compared</span></div>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th>${per.map(m => `<th class="num${m === fm ? ' fcol' : ''}">${C.MON[m - 1]}</th>`).join('')}<th class="num">Total</th></tr></thead>
+      <tbody>
+        <tr><td class="muted">Hours</td>${per.map(m => { const c = x.months[m]; return `<td class="num${m === fm ? ' fcol' : ''}">${c && c.h ? fmtH(c.h) : '<span class="muted">–</span>'}</td>`; }).join('')}<td class="num"><b>${fmtH(x.h)}</b></td></tr>
+        <tr><td class="muted">Expected</td>${per.map(m => { const c = x.months[m]; return `<td class="num${m === fm ? ' fcol' : ''}">${c && c.exp ? fmtH(Math.round(c.exp)) : '<span class="muted">–</span>'}</td>`; }).join('')}<td class="num"><b>${fmtH(Math.round(x.exp))}</b></td></tr>
+        <tr><td class="muted">Shifts</td>${per.map(m => `<td class="num${m === fm ? ' fcol' : ''}">${otCell(x.months[m], x.shift)}</td>`).join('')}<td class="num"><b>${fmtSh(x.net / x.shift)}</b></td></tr>
+      </tbody></table></div>
+    <p class="small muted" style="padding:0 18px 14px">${x.cert ? 'Certification ' + esc(x.cert) + '. ' : ''}${x.lens.length > 1 ? 'Listed with ' + x.lens.map(l => fmtH(l) + ' h').join(' and ') + '; using ' + fmtH(x.shift) + ' h. ' : ''}${x.sickDays ? plural(x.sickDays, 'sick day') + ' on record. ' : ''}Settings are on the Overtime tab.</p></div>`;
+}
+
+function otCsv(kind) {
+  const sc = otScope(); if (!sc) return;
+  const md = MD(), per = sc.per;
+  if (kind === 'month') {
+    const M = otMonthly(sc.rows, per);
+    downloadCSV('overtime-by-month-' + md.year + '.csv', ['Month', 'People compared', 'Over', 'Under', 'Within', 'Hours', 'Expected hours', 'Hours above expected', 'Hours below expected'],
+      M.map(x => [C.MONTHS[x.m - 1], x.n, x.over, x.under, x.ok, +x.h.toFixed(1), +x.exp.toFixed(1), +x.hOver.toFixed(1), +x.hUnder.toFixed(1)]));
+    return;
+  }
+  const cols = otColumns(per, sc.fm).filter(c => !c.noCsv);
+  const rows = otSorted(sc.rows, cols);
+  const header = [...cols.map(c => c.csvL || c.l), ...per.flatMap(m => [C.MON[m - 1] + ' hours', C.MON[m - 1] + ' expected', C.MON[m - 1] + ' shifts +/-', C.MON[m - 1] + ' result'])];
+  const LBL = { over: 'Over', under: 'Under', ok: 'Within', skip: 'Not compared', none: '' };
+  const data = rows.map(x => [...cols.map(c => { const v = c.v(x); return c.fcsv ? c.fcsv(v) : v == null ? '' : v; }),
+    ...per.flatMap(m => { const c = x.months[m]; if (!c || c.st === 'none') return ['', '', '', '']; return [c.h, c.exp ? +c.exp.toFixed(1) : '', c.shifts != null ? +c.shifts.toFixed(2) : '', LBL[c.st]]; })]);
+  downloadCSV('overtime-' + md.year + (S.ot.only ? '-' + S.ot.only + 'h' : '') + '.csv', header, data);
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act^="ot-"]');
+  if (!t || !S.model) return;
+  const a = t.dataset.act;
+  if (a === 'ot-set') { const k = t.dataset.k, v = t.dataset.v; S.ot[k] = v === 'true' ? true : v === 'false' ? false : v; render(); }
+  else if (a === 'ot-sort') { const k = t.dataset.k; S.ot.sort = S.ot.sort.key === k ? { key: k, dir: -S.ot.sort.dir } : { key: k, dir: ['name', 'dept'].includes(k) ? 1 : -1 }; render(); }
+  else if (a === 'ot-more') { S.ot.more = true; render(); }
+  else if (a === 'ot-csv') otCsv('emp');
+  else if (a === 'ot-csv-month') otCsv('month');
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (!t.matches('[data-ot]') || !S.model) return;
+  const k = t.dataset.ot, n = +t.value;
+  if (k === 'weekly') { if (n >= 1 && n <= 84) S.ot.weekly = n; else t.value = S.ot.weekly; }
+  else if (k === 'tol') S.ot.tol = n;
+  render();
+});
+
+/* ==========================================================================
+   tools.js — saving files, Hide names, Saved views, printing and the
+   summary pack. Inserted into app.js's scope like the views.
+   ========================================================================== */
+
+/* ---------- saving a file ----------
+   Inside the claude.ai viewer a page can't start a download itself; it asks the
+   viewer through the downloads capability, which shows a confirmation. Opened as
+   a plain file (or from GitHub) a normal download link is used instead. */
+const DL = window.claude && typeof window.claude.use === 'function'
+  ? Promise.resolve().then(() => window.claude.use('downloads')).catch(() => null) : null;
+async function saveFile(name, data, type) {
+  if (DL) {
+    const dl = await DL;
+    if (dl) {
+      try { await dl.save({ filename: name, data }); return true; }
+      catch (e) {
+        const c = e && e.code;
+        if (c === 'declined') return false;
+        if (c === 'rate_limited') { toast('A save is already waiting for your answer.'); return false; }
+        if (c && !['unavailable', 'not_granted', 'capability_disabled', 'capability_removed'].includes(c)) { toast('Could not save ' + name + ': ' + (e.message || c) + '.'); return false; }
+      }
+    }
+  }
+  const blob = data instanceof Blob ? data : new Blob([data], { type: type || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  return true;
+}
+let toastTimer = null;
+function toast(msg) {
+  let el = $('#toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 3200);
+}
+
+/* ---------- Hide names ----------
+   Swaps names, codes, Α.Κ.Α. and free-text notes for stable labels on the objects
+   every view and export reads from, and puts the originals back when switched
+   off. Matching keys (codeKey, amKey, codeKeys) are never touched, so links
+   between payroll, HR, sick leave and shifts keep working. */
+const _anon = new Map();
+function swap(o, vals) {
+  if (!o) return;
+  if (!_anon.has(o)) { const orig = {}; for (const k in vals) orig[k] = o[k]; _anon.set(o, orig); }
+  Object.assign(o, vals);
+}
+function anonRestore() {
+  for (const [o, orig] of _anon) Object.assign(o, orig);
+  _anon.clear();
+  _scopeCache = null;
+}
+const HID = '•••';
+function anonApply() {
+  const md = S.model; if (!md || !md.people) return;
+  const order = [...md.people].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  const w = Math.max(3, String(order.length).length), label = new Map();
+  order.forEach((p, i) => label.set(p, 'Employee ' + String(i + 1).padStart(w, '0')));
+  for (const p of md.people) {
+    const L = label.get(p);
+    swap(p, { name: L, hrName: L, surname: L, first: '', aka: p.aka ? HID : '', search: C.searchKey(L),
+      codeList: p.codeList.map(c => ({ co: c.co, code: HID })), codes: Object.fromEntries(Object.keys(p.codes).map(k => [k, HID])) });
+    const h = p.hr;
+    if (h) {
+      swap(h, { name: L });
+      h.codes.forEach(c => swap(c, { am: HID }));
+      h.hireRows.forEach(r => swap(r, { name: L, surname: L, first: '', am: HID }));
+      h.exitRows.forEach(r => swap(r, { name: L, am: HID, note: r.note ? '(note hidden)' : '' }));
+    }
+  }
+  (md.unplaced || []).forEach(u => swap(u, { name: 'Name hidden', am: u.am ? HID : '' }));
+  const link = skLink(); let n = 0;
+  for (const b of S.sick) {
+    for (const sp of b.people) {
+      const pp = link && link.map.get(sp);
+      const L = pp && pp !== 'ambiguous' ? label.get(pp) : 'Sick-leave employee ' + String(++n).padStart(3, '0');
+      swap(sp, { name: L, label: L, code: sp.code ? HID : '', search: C.searchKey(L) });
+    }
+    b.issues.forEach(i => swap(i, { msg: i.msg.replace(/Employee code \S+/g, 'An employee code').replace(/“[^”]*”/g, '“…”') }));
+  }
+  _scopeCache = null;
+}
+function setAnon(on) {
+  S.anon = !!on;
+  if (S.anon) { anonRestore(); anonApply(); } else anonRestore();
+}
+
+/* ---------- Saved views ----------
+   A saved view is the tab plus its filters and settings: never names, hours or
+   anything else from the files. Kept in this browser's localStorage; Export and
+   Import move them between people as a small .json file. */
+const PRESET_KEY = 'icts-hour-analysis.saved-views.v1';
+function presetsLoad() {
+  try { const v = JSON.parse(localStorage.getItem(PRESET_KEY) || '[]'); return Array.isArray(v) ? v.filter(p => p && p.name && p.state) : []; }
+  catch (e) { return []; }
+}
+function presetsSave(list) {
+  try { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); return true; }
+  catch (e) { toast('This browser won’t keep saved views (storage is blocked). Use Export to keep a copy.'); return false; }
+}
+const pick = (o, keys) => { const r = {}; keys.forEach(k => { if (o && o[k] !== undefined) r[k] = JSON.parse(JSON.stringify(o[k])); }); return r; };
+function presetSnapshot() {
+  return {
+    view: S.view,
+    f: pick(S.f, ['co', 'dept', 'status', 'basis', 'q', 'focus']),
+    ot: pick(S.ot, ['weekly', 'tol', 'useHR', 'useSick', 'only', 'sort']),
+    sk: pick(S.sk, ['loc', 'div', 'from', 'to', 'q', 'all', 'sort']),
+    io: pick(S.io, ['div', 'station', 'month', 'kind', 'reason', 'tab', 'sort']),
+    mpv: pick(S.mpv, ['div', 'fig', 'mode']),
+    sort: pick(S.sort, ['key', 'dir']), lvTab: S.lvTab, lvDiv: S.lvDiv, anon: S.anon,
+  };
+}
+function presetApply(p) {
+  const st = p.state || {};
+  for (const k of ['f', 'ot', 'sk', 'io', 'mpv', 'sort']) if (st[k] && typeof st[k] === 'object') Object.assign(S[k], pick(st[k], Object.keys(st[k])));
+  if (st.lvTab) S.lvTab = st.lvTab;
+  if (st.lvDiv != null) S.lvDiv = st.lvDiv;
+  if (typeof st.anon === 'boolean' && st.anon !== S.anon) setAnon(st.anon);
+  if (st.view) S.view = st.view;
+  closeMenus(); render();
+  const v = VIEWS.find(x => x.id === st.view);
+  toast(S.view === st.view ? 'Showing “' + p.name + '”.' : '“' + p.name + '” is for ' + (v ? v.label : 'a tab') + ', which needs files that aren’t loaded.');
+}
+function presetDescribe(st) {
+  const v = VIEWS.find(x => x.id === st.view), f = st.f || {};
+  const bits = [v ? v.label : st.view];
+  if (f.co && f.co !== 'Both') bits.push(f.co);
+  if (f.dept) bits.push(f.dept);
+  if (f.status) bits.push((STATUS_OPTS.find(o => o[0] === f.status) || [0, f.status])[1]);
+  if (f.q) bits.push('“' + f.q + '”');
+  if (st.view === 'overtime' && st.ot) { if (st.ot.only) bits.push(st.ot.only + ' h shifts'); bits.push(st.ot.weekly + ' h week'); }
+  if (st.anon) bits.push('names hidden');
+  return bits.join(', ');
+}
+function viewsMenuHTML() {
+  const list = presetsLoad();
+  const sugg = (VIEWS.find(v => v.id === S.view) || {}).label || '';
+  return `<p class="menu-h"><b>Saved views</b></p>
+    ${list.length ? `<div class="pv-list">${list.map((p, i) => `<div class="pv"><button class="pv-go" data-act="pv-apply" data-i="${i}"><b>${esc(p.name)}</b><span>${esc(presetDescribe(p.state))}</span></button><button class="btn ghost sm" data-act="pv-del" data-i="${i}" aria-label="Delete ${esc(p.name)}">${ICON.trash}</button></div>`).join('')}</div>`
+      : '<p class="small muted">None yet. Set up a tab the way you want it, then save it here.</p>'}
+    <div class="pv-new"><label class="sr" for="pv-name">Name for this view</label><input id="pv-name" type="text" maxlength="60" placeholder="${esc(sugg ? sugg + ', ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Name')}" autocomplete="off">
+      <button class="btn sm primary" data-act="pv-save">Save current view</button></div>
+    <div class="pv-foot"><button class="btn ghost sm" data-act="pv-export" ${list.length ? '' : 'disabled'}>Export</button><button class="btn ghost sm" data-act="pv-import">Import</button>
+      <span class="small muted">Filters and settings only, never names or hours. Kept in this browser.</span></div>`;
+}
+function presetSaveCurrent() {
+  const inp = $('#pv-name'), name = (inp && inp.value.trim()) || (inp && inp.placeholder) || 'View';
+  const list = presetsLoad(), i = list.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+  const entry = { name, saved: new Date().toISOString(), state: presetSnapshot() };
+  if (i >= 0) list[i] = entry; else list.push(entry);
+  if (presetsSave(list)) { toast((i >= 0 ? 'Updated “' : 'Saved “') + name + '”.'); refreshMenu('views'); }
+}
+const pvInput = document.createElement('input');
+pvInput.type = 'file'; pvInput.accept = '.json,application/json'; pvInput.className = 'sr'; pvInput.id = 'pv-input';
+pvInput.addEventListener('change', async () => {
+  const f = pvInput.files[0]; pvInput.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text()), inc = (Array.isArray(data) ? data : data.views || []).filter(p => p && typeof p.name === 'string' && p.state && typeof p.state === 'object');
+    if (!inc.length) { toast(f.name + ' has no saved views in it.'); return; }
+    const list = presetsLoad();
+    inc.forEach(p => { const e = { name: p.name.slice(0, 60), saved: p.saved || new Date().toISOString(), state: p.state }; const i = list.findIndex(x => x.name.toLowerCase() === e.name.toLowerCase()); if (i >= 0) list[i] = e; else list.push(e); });
+    if (presetsSave(list)) { toast('Imported ' + plural(inc.length, 'saved view') + '.'); refreshMenu('views'); }
+  } catch (e) { toast(f.name + ' could not be read as saved views.'); }
+});
+document.body.appendChild(pvInput);
+
+/* ---------- menus in the top bar ---------- */
+function exportMenuHTML() {
+  const pk = !!S.model && MD().period && MD().period.Both.length;
+  return `<p class="menu-h"><b>Print or export</b></p>
+    <button class="menu-i" data-act="print-tab"><b>Print this tab</b><span>Or choose “Save as PDF” in the print dialog</span></button>
+    <button class="menu-i" data-act="print-all" ${pk ? '' : 'disabled'}><b>Print the full report</b><span>Every tab with data, one after another, ready for PDF</span></button>
+    <button class="menu-i" data-act="pack" ${pk && window.XLSX ? '' : 'disabled'}><b>Download the summary pack</b><span>One Excel workbook with every table, using the current filters</span></button>
+    ${S.anon ? '<p class="small muted" style="margin-top:4px">Names are hidden, so they are hidden in all of these too.</p>' : ''}`;
+}
+function refreshMenu(id) { const box = $('#menu-' + id); if (box && !box.classList.contains('hide')) box.innerHTML = id === 'views' ? viewsMenuHTML() : exportMenuHTML(); }
+function closeMenus(except) {
+  document.querySelectorAll('.menu').forEach(m => { if (m.id !== 'menu-' + except) { m.classList.add('hide'); const b = $('[data-menu="' + m.id.slice(5) + '"]'); if (b) b.setAttribute('aria-expanded', false); } });
+}
+function toggleMenu(id) {
+  const box = $('#menu-' + id), btn = $('[data-menu="' + id + '"]');
+  if (!box) return;
+  const open = box.classList.contains('hide');
+  closeMenus(id); toggleClear(false, true);
+  box.classList.toggle('hide', !open); btn.setAttribute('aria-expanded', open);
+  if (open) { box.innerHTML = id === 'views' ? viewsMenuHTML() : exportMenuHTML(); const f = box.querySelector('input, button:not(:disabled)'); if (f) f.focus(); }
+}
+function anonBtn() {
+  return `<button class="btn sm${S.anon ? ' on' : ''}" data-act="anon" aria-pressed="${S.anon}" title="${S.anon ? 'Show names' : 'Hide names, codes and Α.Κ.Α.'}">${S.anon ? ICON.eyeOff : ICON.eye}<span class="lbl">${S.anon ? 'Names hidden' : 'Hide names'}</span></button>`;
+}
+
+/* ---------- printing ---------- */
+const REPORT = ['overview', 'overtime', 'inout', 'leavers', 'manpower', 'sick', 'employees'];
+function filtersLine(viewId) {
+  const md = MD(), f = S.f, out = [];
+  const v = VIEWS.find(x => x.id === viewId);
+  if (v && v.filters && md && md.period.Both.length) {
+    out.push('Company ' + (f.co === 'Both' ? 'AS and BX' : f.co));
+    out.push(f.dept ? 'Department ' + f.dept : 'All departments');
+    if (md.hasHR && f.status) out.push('Status ' + STATUS_OPTS.find(o => o[0] === f.status)[1].toLowerCase());
+    if (f.q) out.push('Search “' + f.q + '”');
+    out.push('Month in focus ' + C.MONTHS[focusMonth() - 1]);
+  }
+  if (viewId === 'overtime' && S.shifts) out.push(`${fmtH(S.ot.weekly)} h week, a month counts when off by ${OT_TOLS.find(x => x[0] === S.ot.tol)[1]}` + (S.ot.only ? ', ' + S.ot.only + ' h shifts only' : ''));
+  if (viewId === 'sick' && S.sick.length) out.push([S.sk.loc || 'All locations', S.sk.div || 'all divisions', C.MON[S.sk.from - 1] + ' to ' + C.MON[(S.sk.to || 12) - 1]].join(', '));
+  return out.join('. ');
+}
+function printHeadHTML(title, viewId) {
+  const now = new Date();
+  return `<div class="ph-top">${logoSrc ? `<img alt="ICTS" src="${esc(logoSrc)}">` : '<b>ICTS</b>'}<div><div class="ph-t">${esc(title)}</div>
+    <div class="ph-s">Employee hour analysis, ${S.year}. Printed ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}.${S.anon ? ' <b>Names, codes and Α.Κ.Α. hidden.</b>' : ''}</div>
+    ${viewId ? `<div class="ph-s">${esc(filtersLine(viewId))}</div>` : ''}</div></div>`;
+}
+let _printFired = false, _printMode = null;
+window.addEventListener('beforeprint', () => {
+  _printFired = true;
+  if (!_printMode) { _printMode = 'tab'; preparePrintTab(); }   // the browser's own Print command
+});
+window.addEventListener('afterprint', () => { setTimeout(endPrint, 0); });
+function preparePrintTab() {
+  const v = VIEWS.find(x => x.id === S.view);
+  const ph = $('#print-head'); if (ph) ph.innerHTML = printHeadHTML(v ? v.label : 'Report', S.view);
+  document.body.classList.add('printing');
+}
+function prepareReport() {
+  const md = MD();
+  const ids = REPORT.filter(id => VIEWS.some(v => v.id === id) && (id !== 'overtime' || S.shifts) && (!['inout', 'leavers', 'manpower'].includes(id) || md.hasHR) && (id !== 'sick' || S.sick.length));
+  const box = document.createElement('div'); box.id = 'print-all';
+  document.body.appendChild(box);
+  const saveView = S.view, saveLv = S.lvTab;
+  box.innerHTML = `<div class="print-head">${printHeadHTML('Full report', '')}<div class="ph-s">${esc(filtersLine('overview'))}</div>
+    <ol class="ph-toc">${ids.map(id => `<li>${esc(VIEWS.find(v => v.id === id).label)}</li>`).join('')}</ol></div>`;
+  for (const id of ids) {
+    S.view = id;
+    if (id === 'leavers') S.lvTab = 'list';
+    const v = VIEWS.find(x => x.id === id);
+    const sec = document.createElement('section'); sec.className = 'pr-sec';
+    let html = '';
+    try { html = v.render(); } catch (e) { html = `<p class="muted">This tab could not be printed (${esc(e.message || e)}).</p>`; }
+    sec.innerHTML = `<div class="pr-title">${esc(v.label)}<span>${esc(filtersLine(id))}</span></div>${html}`;
+    box.appendChild(sec);
+    drawCharts(sec);
+    if (id === 'leavers' && md.hasHR) {
+      S.lvTab = 'trends';
+      const s2 = document.createElement('section'); s2.className = 'pr-sec';
+      try { s2.innerHTML = `<div class="pr-title">Leavers: trends</div>${renderLeavers()}`; } catch (e) { s2.innerHTML = ''; }
+      box.appendChild(s2); drawCharts(s2);
+    }
+  }
+  S.view = saveView; S.lvTab = saveLv;
+  document.body.classList.add('printing', 'print-all');
+}
+function endPrint() {
+  document.body.classList.remove('printing', 'print-all');
+  const box = $('#print-all'); if (box) box.remove();
+  _printMode = null;
+  if (S.model && $('#app-main')) render();
+}
+function doPrint(all) {
+  closeMenus();
+  _printFired = false; _printMode = all ? 'all' : 'tab';
+  if (all) prepareReport(); else preparePrintTab();
+  setTimeout(() => {
+    try { window.print(); } catch (e) { /* blocked */ }
+    // A preview that blocks printing ignores print() without firing beforeprint
+    setTimeout(() => { if (!_printFired) printBlocked(all); }, 350);   // cleanup happens on afterprint
+  }, 60);
+}
+function printableHTML(all) {
+  const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
+  const body = all ? $('#print-all').outerHTML : `<div class="print-head" id="print-head">${$('#print-head').innerHTML}</div><main id="app-main">${$('#app-main').innerHTML}</main>`;
+  const title = all ? 'Full report' : (VIEWS.find(x => x.id === S.view) || {}).label || 'Report';
+  return `<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICTS ${esc(title)} ${S.year}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;550;600;650;700&display=swap">
+<style>${css}</style></head><body class="in-app printing snapshot${all ? ' print-all' : ''}">
+<p class="snap-note">Print-ready copy. Use your browser’s Print command (Ctrl+P or ⌘P) and choose “Save as PDF” for a PDF.</p>
+${body}
+<script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 400); });<\/script>
+</body></html>`;
+}
+function printBlocked(all) {
+  const html = printableHTML(all);
+  const title = all ? 'full-report' : S.view;
+  endPrint();
+  const box = document.createElement('div'); box.className = 'modal-bg'; box.id = 'print-blocked';
+  box.innerHTML = `<div class="modal" role="dialog" aria-labelledby="pb-h"><h3 id="pb-h">Printing is blocked here</h3>
+    <p>This preview doesn’t let pages open the print dialog. Download a print-ready copy instead: it opens in your browser and goes straight to Print, where you can choose “Save as PDF”.</p>
+    <div class="confirm-actions"><button class="btn primary" data-act="pb-save">Download print-ready copy</button><button class="btn" data-act="pb-close">Cancel</button></div></div>`;
+  document.body.appendChild(box);
+  box.querySelector('[data-act="pb-save"]').focus();
+  box.addEventListener('click', async e => {
+    const a = e.target.closest('[data-act]'); if (!a && e.target !== box) return;
+    if (a && a.dataset.act === 'pb-save') await saveFile('icts-' + title + '-' + S.year + (S.anon ? '-names-hidden' : '') + '.html', html, 'text/html;charset=utf-8');
+    box.remove();
+  });
+}
+
+/* ---------- summary pack (one .xlsx with every table) ---------- */
+let CAPTURE = null;
+async function summaryPack() {
+  closeMenus();
+  if (!window.XLSX || !S.model) return;
+  const XL = window.XLSX, md = MD(), wb = XL.utils.book_new(), used = new Set(), made = [];
+  const add = (title, aoa, note) => {
+    if (!aoa || aoa.length < 2) return;
+    let n = title.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31), i = 2;
+    while (used.has(n.toLowerCase())) n = title.slice(0, 28) + ' ' + i++;
+    used.add(n.toLowerCase());
+    const ws = XL.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = aoa[0].map((_, c) => ({ wch: Math.min(46, Math.max(7, ...aoa.slice(0, 300).map(r => String(r[c] == null ? '' : r[c]).length + 2))) }));
+    ws['!autofilter'] = { ref: XL.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: aoa.length - 1, c: aoa[0].length - 1 } }) };
+    XL.utils.book_append_sheet(wb, ws, n);
+    made.push([n, note, aoa.length - 1]);
+  };
+  const grab = (title, note, fn) => {
+    CAPTURE = [];
+    try { fn(); } catch (e) { console.warn('Summary pack: ' + title + ' skipped', e); }
+    const got = CAPTURE; CAPTURE = null;
+    got.forEach((g, i) => add(got.length > 1 ? title + ' ' + (i + 1) : title, [g.header, ...g.rows], note));
+  };
+
+  // hours, from the filtered list
+  const v = scoped(), per = v.per;
+  if (per.length) {
+    const rows = per.map(k => {
+      let as = 0, bx = 0, c = 0, n = 0;
+      for (const r of v.list) { as += r.x.by.AS[k]; bx += r.x.by.BX[k]; c += r.x.c[k]; if (r.x.m[k] > 0) n++; }
+      return [C.MONTHS[k - 1], +as.toFixed(2), +bx.toFixed(2), +(as + bx).toFixed(2), n, n ? +((as + bx) / n).toFixed(1) : '', +c.toFixed(2)];
+    });
+    const sum = i => +rows.reduce((s, r) => s + (+r[i] || 0), 0).toFixed(2);
+    rows.push(['Total', sum(1), sum(2), sum(3), v.list.length, '', sum(6)]);
+    add('Hours by month', [['Month', 'AS hours', 'BX hours', 'Total hours', 'People paid', 'Hours per person', 'Cost (€)'], ...rows], 'Hours, people paid and cost per month');
+    const dep = {};
+    for (const r of v.list) for (const row of r.p.rows) {
+      if (S.f.co !== 'Both' && row.co !== S.f.co) continue;
+      if (S.f.dept && row.dept !== S.f.dept) continue;
+      const d = dep[row.dept] || (dep[row.dept] = { m: new Array(13).fill(0), c: 0, ppl: new Set(), co: new Set() });
+      d.m[row.m] += row.h; d.c += row.c; d.ppl.add(r.p.id); d.co.add(row.co);
+    }
+    const drows = Object.entries(dep).map(([name, d]) => [name, [...d.co].sort().join(' and '), d.ppl.size, +per.reduce((s, k) => s + d.m[k], 0).toFixed(2), ...per.map(k => +d.m[k].toFixed(2)), +d.c.toFixed(2)]).sort((a, b) => b[3] - a[3]);
+    add('Departments', [['Department', 'Paid by', 'People', 'Total hours', ...per.map(k => C.MON[k - 1] + ' hours'), 'Cost (€)'], ...drows], 'Hours per department and month');
+  }
+  grab('Employees', 'Everyone on payroll in the filters, with monthly hours', csvEmployees);
+  if (S.shifts) {
+    grab('Overtime', 'Each person against their standard shift, month by month', () => otCsv('emp'));
+    grab('Overtime by month', 'People over and under, and hours above and below expected', () => otCsv('month'));
+  }
+  if (md.hasHR) {
+    const io = S.io.tab;
+    grab('Leavers', 'Departures in the In & Out filters', () => { S.io.tab = 'left'; csvInOut(); });
+    grab('Joiners', 'Hires in the In & Out filters', () => { S.io.tab = 'joined'; csvInOut(); });
+    S.io.tab = io;
+    grab('Leavers by month', 'Who left in each month, with their hours', csvLeavers);
+    grab('Leaver trends', 'Leavers and turnover by month', csvLvTrends);
+    const mp = { from: S.mpv.from, to: S.mpv.to };
+    grab('Manpower', 'Headcount figures by station and month', () => {
+      if (!S.mpv.from || !S.mpv.to) { const G = mpCompute(md); if (G.months.length) { S.mpv.from = G.months[0].key; S.mpv.to = G.months[G.months.length - 1].key; } }
+      csvManpower();
+    });
+    Object.assign(S.mpv, mp);
+    grab('Records to fix', 'HR rows and payroll people that need attention', csvFix);
+  }
+  if (S.sick.length) {
+    grab('Sick leave', 'Sick days per employee in the Sick leave filters', () => skCsv('emp'));
+    grab('Sick leave by month', 'Sick days, employees and spells per month', () => skCsv('month'));
+    grab('Sick leave checks', 'Sick leave entries that need checking', () => skCsv('dq'));
+  }
+  const files = S.files.filter(f => f.status !== 'replaced' && f.status !== 'error' && f.status !== 'unknown');
+  const about = [
+    ['ICTS employee hour analysis: summary pack', ''],
+    ['Year', md.year], ['Created', new Date().toLocaleString('en-GB')], ['Payroll months', monthRange(per)],
+    ['Company', S.f.co === 'Both' ? 'AS and BX' : S.f.co], ['Department', S.f.dept || 'All'],
+    ['Status', md.hasHR ? (STATUS_OPTS.find(o => o[0] === S.f.status) || ['', 'All'])[1] : 'No HR workbook loaded'],
+    ['Search', S.f.q || '(none)'], ['Averages over', S.f.basis === 'all' ? 'All months' : 'Months worked'],
+    ['Names, codes and Α.Κ.Α.', S.anon ? 'Hidden' : 'Shown'],
+  ];
+  if (S.shifts) about.push(['Overtime: full-time week', S.ot.weekly + ' hours'], ['Overtime: counts a month when off by', OT_TOLS.find(x => x[0] === S.ot.tol)[1]],
+    ['Overtime: days before hire or after leaving', md.hasHR ? (S.ot.useHR ? 'Left out' : 'Counted') : 'No HR workbook'], ['Overtime: sick days', md.hasHR && S.sick.length ? (S.ot.useSick ? 'Left out' : 'Counted') : 'Not available']);
+  about.push(['', ''], ['Files read', '']);
+  files.forEach(f => about.push([f.name, f.kind === 'payroll' ? f.company + ' ' + C.MONTHS[f.month - 1] : { hr: 'Hirings & departures', manpower: 'Manpower report', sick: 'Sick leave', shifts: 'Standard shifts' }[f.kind] || f.kind]));
+  about.push(['', ''], ['Sheets in this workbook', ''], ...made.map(([n, note, k]) => [n, note + ' (' + plural(k, 'row') + ')']));
+  const wsA = XL.utils.aoa_to_sheet(about); wsA['!cols'] = [{ wch: 42 }, { wch: 80 }];
+  XL.utils.book_append_sheet(wb, wsA, 'About');
+  wb.SheetNames = ['About', ...wb.SheetNames.filter(n => n !== 'About')];
+  const buf = XL.write(wb, { bookType: 'xlsx', type: 'array' });
+  const name = 'icts-hour-summary-' + md.year + (S.f.co !== 'Both' ? '-' + S.f.co.toLowerCase() : '') + (S.anon ? '-names-hidden' : '') + '.xlsx';
+  const ok = await saveFile(name, new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  if (ok) toast('Summary pack ready: ' + plural(made.length, 'sheet') + ' plus About.');
+}
+
+/* ---------- events for the above ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (!t) return;
+  const a = t.dataset.act;
+  if (a === 'menu') { toggleMenu(t.dataset.menu); return; }
+  if (a === 'anon') { setAnon(!S.anon); render(); toast(S.anon ? 'Names, codes and Α.Κ.Α. are hidden on screen and in exports.' : 'Names are shown again.'); return; }
+  if (a === 'print-tab') doPrint(false);
+  else if (a === 'print-all') doPrint(true);
+  else if (a === 'pack') summaryPack();
+  else if (a === 'pv-save') presetSaveCurrent();
+  else if (a === 'pv-apply') { const p = presetsLoad()[+t.dataset.i]; if (p) presetApply(p); }
+  else if (a === 'pv-del') { const list = presetsLoad(), p = list[+t.dataset.i]; if (p) { list.splice(+t.dataset.i, 1); if (presetsSave(list)) { toast('Deleted “' + p.name + '”.'); refreshMenu('views'); } } }
+  else if (a === 'pv-export') { const list = presetsLoad(); if (list.length) saveFile('icts-saved-views.json', JSON.stringify({ app: 'icts-hour-analysis', views: list }, null, 2), 'application/json'); }
+  else if (a === 'pv-import') pvInput.click();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'pv-name') { e.preventDefault(); presetSaveCurrent(); }
+  if (e.key === 'Escape') { const open = document.querySelector('.menu:not(.hide)'); if (open) { const id = open.id.slice(5); closeMenus(); const b = $('[data-menu="' + id + '"]'); if (b) b.focus(); } const pb = $('#print-blocked'); if (pb) pb.remove(); }
+});
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.menu-wrap')) closeMenus(); });
+
 /* ---------- registry and events ---------- */
 VIEWS.unshift(
   { id: 'overview', label: 'Overview', render: renderOverview, filters: true },
+  { id: 'overtime', label: 'Overtime', render: renderOvertime, filters: true },
   { id: 'inout', label: 'In & Out', render: renderInOut, filters: true, needsHR: true },
   { id: 'leavers', label: 'Leavers', render: renderLeavers, needsHR: true },
   { id: 'manpower', label: 'Manpower', render: renderManpower, needsHR: true },
@@ -3639,7 +4604,7 @@ document.addEventListener('input', e => {
   } else if (t.id === 'cmp-q') { S.cmpQ = t.value; clearTimeout(qTimer); qTimer = setTimeout(render, 120); }
 });
 let rsTimer = null;
-window.addEventListener('resize', () => { clearTimeout(rsTimer); rsTimer = setTimeout(drawCharts, 120); });
+window.addEventListener('resize', () => { clearTimeout(rsTimer); rsTimer = setTimeout(() => { if (!document.body.classList.contains('printing')) drawCharts(); }, 120); });
 
 /* tooltip for chart hit areas */
 const tip = document.createElement('div'); tip.className = 'tip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip);
@@ -3664,6 +4629,11 @@ function showApp() {
     <div class="brand">${brandMark()}<div class="brand-name">Employee hour analysis<small id="bar-year"></small></div></div>
     <nav class="tabs" role="tablist" id="tabs"></nav>
     <div class="bar-actions">
+      <span class="menu-wrap"><button class="btn sm" data-act="menu" data-menu="views" aria-expanded="false" aria-controls="menu-views" title="Saved views">${ICON.bookmark}<span class="lbl">Saved views</span></button>
+        <div class="confirm menu hide" id="menu-views" role="dialog" aria-label="Saved views"></div></span>
+      <span id="anon-slot">${anonBtn()}</span>
+      <span class="menu-wrap"><button class="btn sm" data-act="menu" data-menu="export" aria-expanded="false" aria-controls="menu-export" title="Print or export">${ICON.out}<span class="lbl">Print & export</span></button>
+        <div class="confirm menu hide" id="menu-export" role="dialog" aria-label="Print or export"></div></span>
       <button class="btn sm" data-act="pick" title="Add files">${ICON.plus}<span class="lbl">Add files</span></button>
       <span class="clear-wrap">
         <button class="btn sm danger" data-act="clear" aria-expanded="false" aria-controls="clear-confirm" title="Clear all data">${ICON.trash}<span class="lbl">Clear all data</span></button>
@@ -3677,6 +4647,7 @@ function showApp() {
     </div>
   </div>
   <div class="filters" id="filters"></div></header>
+  <div class="print-head" id="print-head"></div>
   <main id="app-main"></main>
   <div class="overlay" aria-hidden="true"><div>Drop to add files</div></div>`;
 }
@@ -3695,6 +4666,8 @@ function render() {
   const issues = ready && warnings().some(w => w[0] !== 'info');
   $('#tabs').innerHTML = views.map(v => `<button class="tab" role="tab" aria-selected="${S.view === v.id}" data-view="${v.id}">${v.label}${v.id === 'files' && issues ? '<span class="dot" title="Some files need attention"></span>' : ''}</button>`).join('');
   $('#theme-slot').innerHTML = themeBtn();
+  $('#anon-slot').innerHTML = anonBtn();
+  document.body.classList.toggle('anon', !!S.anon);
   const v = views.find(x => x.id === S.view);
   const fb = $('#filters');
   if (ready && v.filters && S.model.period.Both.length) { fb.innerHTML = filterBarHTML(); fb.classList.remove('hide'); }
@@ -3741,7 +4714,7 @@ function renderFiles() {
     : 'No payroll files have been read yet.';
 
   // table rows
-  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : f.kind === 'sick' ? 5 : 6;
+  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : f.kind === 'sick' ? 5 : f.kind === 'shifts' ? 6 : 7;
   const files = [...S.files].sort((a, b) => order(a) - order(b) || (a.month || 0) - (b.month || 0) || a.id - b.id);
   let last = 0;
   const rows = files.map(f => {
@@ -3767,6 +4740,10 @@ function renderFiles() {
       readAs = '<span class="co mp">MP</span>Manpower report';
       if (S.mp && S.mp.fileId === f.id) rowsTxt = plural(S.mp.stations, 'station') + '<br>' + (S.mp.months.length ? S.mp.months[0] + ' to ' + S.mp.months[S.mp.months.length - 1] : 'no months');
       check = f.status === 'warn' ? `<span class="chk warn">${ICON.warn}No months</span>` : `<span class="chk ok">${ICON.check}Read</span>`;
+    } else if (f.kind === 'shifts') {
+      readAs = '<span class="co sh">SH</span>Standard shifts';
+      if (S.shifts && S.shifts.fileId === f.id) rowsTxt = fmt(S.shifts.rows.length) + ' employees';
+      check = f.status === 'warn' ? `<span class="chk warn">${ICON.warn}Rows to check</span>` : `<span class="chk ok">${ICON.check}Read</span>`;
     } else if (f.kind === 'sick') {
       const b = S.sick.find(x => x.fileId === f.id);
       readAs = '<span class="co sk">SL</span>Sick leave' + (b ? ', ' + esc(b.sheet) : '');
@@ -3790,7 +4767,7 @@ function renderFiles() {
   const pendingCards = pendList.map(f => {
     const g = (f.cls && f.cls.guess) || {};
     return `<div class="pending" data-pending="${f.id}">
-      <div><b>${esc(f.name)}</b> has a Print sheet, but its name doesn’t follow the <b>5as.xlsx</b> pattern.</div>
+      <div><b>${esc(f.name)}</b> has a Print sheet, but its name doesn’t follow the <b>AS05.xlsx</b> pattern.</div>
       <div class="pending-row">
         <label class="sr" for="pm-${f.id}">Month</label>
         <select id="pm-${f.id}"><option value="">Month…</option>${C.MONTHS.map((mn, i) => `<option value="${i + 1}"${g.month === i + 1 ? ' selected' : ''}>${mn}</option>`).join('')}</select>
@@ -3836,6 +4813,15 @@ function renderFiles() {
       ${S.sick.map(b => `<div class="sub-h">${esc(b.location)} ${b.dataYear || ''}</div><dl class="facts"><dt>Employee rows</dt><dd>${fmt(b.people.length)}</dd><dt>With code / name</dt><dd>${fmt(b.people.length - b.noCode)} / ${fmt(b.people.length - b.noName)}</dd>
         <dt>Periods counted</dt><dd>${fmt(b.periods)}</dd><dt>Periods excluded</dt><dd>${fmt(b.excluded)}</dd><dt>Latest sick day</dt><dd>${b.lastDay == null ? '–' : fmtDMY(b.lastDay)}</dd></dl>`).join('')}
     </div></div>` : '';
+  const shp = S.shifts ? (() => {
+    const o = otModel(), byLen = {};
+    S.shifts.rows.forEach(r => { byLen[r.hours] = (byLen[r.hours] || 0) + 1; });
+    return `<div class="panel"><div class="panel-h"><h3>Standard shifts</h3><button class="btn sm" data-view="overtime">Open</button></div><div class="panel-b">
+      <dl class="facts"><dt>Employees listed</dt><dd>${fmt(S.shifts.rows.length)}</dd>${Object.keys(byLen).sort((a, b) => a - b).map(h => `<dt>${fmtH(+h)}-hour shift</dt><dd>${fmt(byLen[h])}</dd>`).join('')}
+      ${o ? `<dt>Matched to payroll</dt><dd>${fmt(o.matchedRows)}</dd><dt>Not on payroll</dt><dd>${fmt(o.unmatchedRows.length)}</dd>` : ''}
+      <dt>Listed more than once</dt><dd>${fmt(S.shifts.dupes + S.shifts.conflicts)}</dd><dt>With conflicting lengths</dt><dd>${fmt(S.shifts.conflicts)}</dd></dl>
+    </div></div>`;
+  })() : '';
   return `<div class="view-head"><div><h2>Files</h2><p>${esc(summary)}</p></div>
       <div class="year-row" style="margin:0"><label for="year2">Year</label><input id="year2" type="number" min="2000" max="2100" value="${S.year}"></div></div>
     <div class="files-grid">
@@ -3846,7 +4832,7 @@ function renderFiles() {
           <tbody>${rows}</tbody>${foot}</table></div></div>
         ${notes}
       </div>
-      <div class="stack">${boardHTML()}${hr}${mp}${sk}</div>
+      <div class="stack">${boardHTML()}${hr}${mp}${sk}${shp}</div>
     </div>`;
 }
 
@@ -3874,13 +4860,14 @@ document.addEventListener('click', e => {
   }
   else if (a === 'resolve-all') resolveAll();
 });
-function toggleClear(force) {
+function toggleClear(force, quiet) {
   const box = $('#clear-confirm'), btn = $('[data-act="clear"]');
   if (!box) return;
   const open = force == null ? box.classList.contains('hide') : force;
+  if (open) closeMenus();
   box.classList.toggle('hide', !open);
   btn.setAttribute('aria-expanded', open);
-  if (open) $('[data-act="clear-yes"]', box).focus(); else btn.focus();
+  if (open) $('[data-act="clear-yes"]', box).focus(); else if (!quiet) btn.focus();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#clear-confirm') && !$('#clear-confirm').classList.contains('hide')) toggleClear(false); });
 document.addEventListener('pointerdown', e => {
