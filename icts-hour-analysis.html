@@ -4852,12 +4852,13 @@ function rpStationPanel(V, st) {
   const sum = rows.length ? [plural(rows.length, 'leaver'), fmtH(tot) + ' h worked', V.hasSick ? plural(sk, 'sick day') : ''].filter(Boolean).join(' · ') : 'Nobody left';
   const body = !rows.length ? `<div class="panel-b"><p class="small muted">No leavers under ${st} in this period.</p></div>` :
     `<div class="tbl-wrap"><table class="t rp-t">
-      <thead><tr><th>Employee</th><th>Department</th><th>Employment period</th><th class="num">Hours worked</th><th class="num">Sick days</th><th>How it ended</th><th>Reason for leaving</th><th>Category</th></tr></thead>
+      <thead><tr><th>Employee</th><th>Department</th><th>Employment period</th><th class="num">Hours worked</th><th class="num">Avg hours/month</th><th class="num">Sick days</th><th>How it ended</th><th>Reason for leaving</th><th>Category</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td>${personCell(r.p)}</td>
         <td class="small">${esc(r.stn.dept || '–')}${r.stn.src === 'hr' ? '<div class="muted">HR station</div>' : ''}</td>
         <td class="small nowrap">${r.start != null ? fmtD(r.start) : '<span class="muted">start unknown</span>'} – ${fmtD(r.end)}<div class="muted">${r.dur != null ? fmtDur(r.dur) : ''}${r.p.hr.codes.some(c => c.company === 'AS') && r.p.hr.codes.some(c => c.company === 'BX') ? (r.dur != null ? ', ' : '') + 'AS and BX' : ''}</div></td>
         <td class="num">${r.tot ? '<b>' + fmtH(r.tot) + '</b>' : '<span class="muted">–</span>'}${r.tot ? `<div class="small muted">${[r.asH ? 'AS ' + fmtH(r.asH) : '', r.bxH ? 'BX ' + fmtH(r.bxH) : ''].filter(Boolean).join(' · ')}, ${plural(r.worked, 'month')}</div>` : ''}</td>
+        <td class="num">${r.worked ? fmtH(r.tot / r.worked) : '<span class="muted">–</span>'}</td>
         <td class="num">${r.sickDays == null ? '<span class="muted">–</span>' : r.sickDays ? '<b>' + fmt(r.sickDays) + '</b>' : '0'}</td>
         <td class="small">${esc(M_.KIND_LABEL[r.ev.kind] || r.ex.logos || '–')}</td>
         <td class="small">${r.reasons.length ? r.reasons.map(esc).join('<br>') : '<span class="muted">None given</span>'}${r.ex.note ? `<div class="muted">“${esc(r.ex.note)}”</div>` : ''}</td>
@@ -4889,12 +4890,12 @@ function renderReports() {
     + `<div class="note info">${ICON.info}<span>${notes.map(esc).join(' ')}</span></div>`;
 }
 
-const RP_HEAD = ['Station', 'Employee', 'Codes', 'Α.Κ.Α.', 'Department', 'Employment start', 'Last day', 'Employment (years)', 'Hours worked', 'AS hours', 'BX hours', 'Months with hours', 'Sick days', 'How it ended', 'Reason for leaving', 'Note', 'ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ'];
+const RP_HEAD = ['Station', 'Employee', 'Codes', 'Α.Κ.Α.', 'Department', 'Employment start', 'Last day', 'Employment (years)', 'Hours worked', 'AS hours', 'BX hours', 'Months with hours', 'Average hours per month', 'Sick days', 'How it ended', 'Reason for leaving', 'Note', 'ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ'];
 function rpLine(r, iso) {
   const d = v => v == null ? '' : iso ? C.dayISO(v) : fmtDMY(v);
   return [r.stn.st, r.p.name, r.p.codeList.map(c => c.code).join(' / '), r.p.aka || '', r.stn.dept || '',
     d(r.start), d(r.end), r.dur != null ? +(r.dur / 365.25).toFixed(2) : '',
-    +r.tot.toFixed(2), +r.asH.toFixed(2), +r.bxH.toFixed(2), r.worked, r.sickDays == null ? '' : r.sickDays,
+    +r.tot.toFixed(2), +r.asH.toFixed(2), +r.bxH.toFixed(2), r.worked, r.worked ? +(r.tot / r.worked).toFixed(2) : '', r.sickDays == null ? '' : r.sickDays,
     M_.KIND_LABEL[r.ev.kind] || r.ex.logos || '', r.reasons.join('; '), (S.anon && _anon.has(r.ex) && 'note' in _anon.get(r.ex) ? _anon.get(r.ex).note : r.ex.note) || '', r.ex.category || ''];
 }
 const rpRange = (V, k) => k.from === k.to ? C.MONTHS[k.from - 1] + ' ' + V.y : C.MONTHS[k.from - 1] + ' to ' + C.MONTHS[k.to - 1] + ' ' + V.y;
@@ -4916,7 +4917,7 @@ async function buildReportXlsx() {
     const rows = V.rows.filter(r => r.stn.st === st);
     const sum = f => +rows.reduce((t, r) => t + (f(r) || 0), 0).toFixed(2);
     const data = rows.map(r => { const row = keep(rpLine(r, true).slice(1)); if (S.anon) row[0] = 'Employee ' + (++seq); return row; });
-    if (rows.length) data.push(keep(['Total', '', '', '', '', '', '', sum(r => r.tot), sum(r => r.asH), sum(r => r.bxH), '', V.hasSick ? sum(r => r.sickDays) : '']));
+    if (rows.length) data.push(keep(['Total', '', '', '', '', '', '', sum(r => r.tot), sum(r => r.asH), sum(r => r.bxH), '', '', V.hasSick ? sum(r => r.sickDays) : '']));
     xlAddSheet(wb, { name: st, title: 'Leavers report: ' + st + ', ' + rpRange(V, k), subtitle: plural(rows.length, 'leaver') + (S.anon ? ', names hidden' : '') + '. Created ' + new Date().toLocaleDateString('en-GB') + '.',
       header: head, rows: data, total: rows.length > 0, freeze: 1, tab: st === 'PFO' ? 'FFC11E26' : XL_NAVY });
   }
