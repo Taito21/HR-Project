@@ -509,6 +509,8 @@ details.mapd select { padding: .3rem .45rem; border: 1px solid var(--line-2); bo
 .lv-chip.lv-all { min-width: 96px; margin-right: 8px; }
 .lv-bar { display: grid; gap: 8px; }
 .lv-tabs { margin: 0 0 14px; }
+.lv-ty-h { display: flex; gap: 10px; align-items: baseline; padding: 10px 16px 6px; font-size: 13px; border-top: 1px solid var(--line, rgba(127,127,127,.2)); }
+.lv-ty-h:first-child { border-top: 0; }
 .tr-list { margin: 0; padding-left: 1.2em; display: grid; gap: 7px; }
 .tr-list li::marker { color: var(--muted); }
 .tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr)); gap: 20px; align-items: start; }
@@ -1740,6 +1742,7 @@ const fresh = () => ({
   lvSel: [],            // Leavers tab: months picked (empty = all)
   lvTab: 'list', lvDiv: '',   // Leavers tab: which sub-tab (list | trends) and the division for Trends
   lvSt: '',             // Leavers tab, both views: station ('' both | LCA | PFO)
+  lvTy: '',             // Leavers tab, both views: staff type ('' both | permanent | seasonal)
   mpv: { from: '', to: '', div: '', fig: 'end', mode: 'computed' }, mpMap: null,
   io: { div: '', station: '', month: 0, kind: '', reason: '', tab: 'left', sort: { key: 'date', dir: -1 } },
 });
@@ -3259,9 +3262,11 @@ function leaversByMonth() {
       if (ev.code !== 'x' || ev.d < y0 || ev.d > yEnd) continue;
       const stn = leaverStation(p, ev);
       if (S.lvSt && stn.st !== S.lvSt) continue;
+      const ty = rpTypeOf(ev);
+      if (S.lvTy && ty !== S.lvTy) continue;
       const m = C.dayParts(ev.d)[1];
       const x = calc(p, 'Both', '');
-      (byM[m] || (byM[m] = [])).push({ p, ev, m, x, stn, s: summarise(x, per, 'worked') });
+      (byM[m] || (byM[m] = [])).push({ p, ev, m, x, stn, ty, s: summarise(x, per, 'worked') });
     }
   }
   for (const m in byM) byM[m].sort((a, b) => a.ev.d - b.ev.d || a.p.name.localeCompare(b.p.name));
@@ -3279,7 +3284,7 @@ const joinMonths = ms => ms.map(m => C.MONTHS[m - 1]).reduce((a, b, i, arr) => i
 function renderLeavers() {
   if (S.lvTab === 'trends') return renderLeaverTrends();
   const L = leaversByMonth(), { md, per, months, byM } = L;
-  const stBar = `<div class="panel io-bar"><div class="io-f">${lvStSeg()}</div><p class="io-scope">${esc(LV_ST_NOTE)}</p></div>`;
+  const stBar = `<div class="panel io-bar"><div class="io-f">${lvStSeg()}${lvTySeg()}</div><p class="io-scope">${esc(LV_ST_NOTE)} ${esc(LV_TY_NOTE)}</p></div>`;
   if (!months.length) return head('Leavers', '') + lvTabs() + stBar + emptyState('Nothing to show for ' + md.year, 'This tab covers the year set on the Files tab, up to today.');
   const total = months.reduce((s, m) => s + (byM[m] ? byM[m].length : 0), 0);
   const shown = lvShown(L), picked = S.lvSel.length > 0;
@@ -3299,12 +3304,20 @@ function renderLeavers() {
     const title = C.MONTHS[m - 1] + ' ' + md.year + (m === L.partial ? ' (to date)' : '');
     if (!list.length) return picked ? '' : `<section class="lv-sec lv-empty" id="lv-${m}"><h3>${esc(title)}</h3><span class="muted">Nobody left.</span></section>`;
     const noHours = list.filter(r => !r.s.total).length;
-    const rows = list.map(r => `<tr><td>${personCell(r.p)}${S.lvSt ? '' : `<div class="small muted">${r.stn.st}</div>`}</td><td>${fmtD(r.ev.d)}</td>
+    const rowsOf = sub => sub.map(r => `<tr><td>${personCell(r.p)}${S.lvSt ? '' : `<div class="small muted">${r.stn.st}</div>`}</td><td>${fmtD(r.ev.d)}</td>
       <td class="num"><b>${r.s.total ? fmt(r.s.avg, 1) : '–'}</b>${r.s.total ? `<div class="small muted">${r.s.worked} ${r.s.worked === 1 ? 'month' : 'months'}</div>` : ''}</td>
       ${per.map(k => `<td class="num${k === m ? ' lvm' : ''}">${r.x.m[k] ? fmtH(r.x.m[k]) : '<span class="muted">–</span>'}</td>`).join('')}</tr>`).join('');
+    const table = sub => `<div class="tbl-wrap"><table class="t lv" style="--lv-n:${per.length}">${cols}${thead(m)}<tbody>${rowsOf(sub)}</tbody></table></div>`;
+    // permanent and seasonal staff in separate tables, unless one type is picked
+    const types = S.lvTy ? [S.lvTy] : RP_TYPES.map(t => t[0]);
+    const nSeas = list.filter(r => r.ty === 'seasonal').length;
+    const body = S.lvTy ? table(list) : types.map(ty => {
+      const sub = list.filter(r => r.ty === ty);
+      return `<div class="lv-ty-h"><b>${rpTypeLabel(ty)} staff</b><span class="muted">${sub.length ? plural(sub.length, 'person', 'people') : 'nobody'}</span></div>${sub.length ? table(sub) : ''}`;
+    }).join('');
     return `<section class="panel lv-sec" id="lv-${m}">
-      <div class="panel-h"><h3>${esc(title)}</h3><span class="muted">${plural(list.length, 'person', 'people')} left${noHours ? `, ${noHours} with no payroll hours in these files` : ''}</span></div>
-      <div class="tbl-wrap"><table class="t lv" style="--lv-n:${per.length}">${cols}${thead(m)}<tbody>${rows}</tbody></table></div></section>`;
+      <div class="panel-h"><h3>${esc(title)}</h3><span class="muted">${plural(list.length, 'person', 'people')} left${S.lvTy ? '' : ` (${fmt(list.length - nSeas)} permanent, ${fmt(nSeas)} seasonal)`}${noHours ? `, ${noHours} with no payroll hours in these files` : ''}</span></div>
+      ${body}</section>`;
   }).join('');
   return head('Leavers', `${plural(total, 'person', 'people')} left the group${lvStLabel()} in ${md.year}${L.partial ? ', up to today' : ''}. The average is their total hours divided by the months they had hours; the highlighted column is the month they left. Moves to another group company are not counted.`,
       `<div class="head-acts"><button class="btn" data-act="lv-csv" ${shownN ? '' : 'disabled'}>Download CSV${picked ? ' (' + plural(shown.length, 'month') + ')' : ''}</button></div>`) + lvTabs() + stBar + nav + sections;
@@ -3314,9 +3327,9 @@ function csvLeavers() {
   const L = leaversByMonth(), { md, per, byM } = L;
   const shown = lvShown(L);
   const data = [];
-  shown.forEach(m => (byM[m] || []).forEach(r => data.push([C.MONTHS[m - 1], C.dayISO(r.ev.d), r.stn.st, r.p.name, r.p.codeList.map(c => c.co + ' ' + c.code).join(' / '), r.p.aka || '',
+  shown.forEach(m => [...(byM[m] || [])].sort((a, b) => (a.ty === b.ty ? 0 : a.ty === 'permanent' ? -1 : 1)).forEach(r => data.push([C.MONTHS[m - 1], C.dayISO(r.ev.d), r.stn.st, rpTypeLabel(r.ty), r.p.name, r.p.codeList.map(c => c.co + ' ' + c.code).join(' / '), r.p.aka || '',
     r.s.total ? +r.s.avg.toFixed(2) : '', r.s.worked, ...per.map(k => r.x.m[k] || 0)])));
-  downloadCSV('leavers-' + md.year + (S.lvSel.length ? '-' + shown.map(m => C.MON[m - 1].toLowerCase()).join('-') : '-by-month') + (S.lvSt ? '-' + S.lvSt.toLowerCase() : '') + '.csv', ['Month left', 'Last day', 'Station', 'Employee', 'Codes', 'Α.Κ.Α.', 'Average hours per month', 'Months with hours', ...per.map(k => C.MONTHS[k - 1])], data);
+  downloadCSV('leavers-' + md.year + (S.lvSel.length ? '-' + shown.map(m => C.MON[m - 1].toLowerCase()).join('-') : '-by-month') + (S.lvSt ? '-' + S.lvSt.toLowerCase() : '') + (S.lvTy ? '-' + S.lvTy : '') + '.csv', ['Month left', 'Last day', 'Station', 'Staff type', 'Employee', 'Codes', 'Α.Κ.Α.', 'Average hours per month', 'Months with hours', ...per.map(k => C.MONTHS[k - 1])], data);
 }
 
 /* ---------- Leavers › Trends ------------------------------------------------
@@ -3332,10 +3345,12 @@ const LV_TABS = [['list', 'By month'], ['trends', 'Trends']];
 const LV_ST = [['', 'LCA and PFO'], ['LCA', 'LCA'], ['PFO', 'PFO']];
 const lvStSeg = () => `<div class="fg"><span class="fl">Station</span><div class="seg" role="group" aria-label="Station">${LV_ST.map(([v, l]) => `<button data-act="lv-st" data-v="${v}" aria-pressed="${(S.lvSt || '') === v}">${l}</button>`).join('')}</div></div>`;
 const LV_ST_NOTE = 'LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, from the last month a person was paid; PFO is every other department. People with no payroll rows are placed by their HR station.';
-const lvStLabel = () => S.lvSt ? ' under ' + S.lvSt : '';
+const lvTySeg = () => `<div class="fg"><span class="fl">Staff</span><div class="seg" role="group" aria-label="Staff type">${[['', 'Permanent and seasonal'], ...RP_TYPES].map(([v, l]) => `<button data-act="lv-ty" data-v="${v}" aria-pressed="${(S.lvTy || '') === v}">${l}</button>`).join('')}</div></div>`;
+const LV_TY_NOTE = 'Seasonal staff are those whose employment ended with ΛΗΞΗ ΣΥΜΒΑΣΗΣ (contract ended); everyone else is counted as permanent.';
+const lvStLabel = () => (S.lvTy ? ' (' + rpTypeLabel(S.lvTy).toLowerCase() + ' staff)' : '') + (S.lvSt ? ' under ' + S.lvSt : '');
 const lvTabs = () => `<div class="lv-tabs"><div class="seg" role="group" aria-label="Leavers view">${LV_TABS.map(([k, l]) => `<button data-act="lv-tab" data-v="${k}" aria-pressed="${(S.lvTab || 'list') === k}">${l}</button>`).join('')}</div></div>`;
 
-function lvTrendData(div, st) {
+function lvTrendData(div, st, ty) {
   const md = MD(), asOf = md.asOf, W0 = md.W0;
   const [wy, wm] = C.dayParts(W0), [ay, am] = C.dayParts(asOf);
   const months = [];
@@ -3371,6 +3386,7 @@ function lvTrendData(div, st) {
       const dv = e.division || h.division;
       if (div && dv !== div) continue;
       if (st && leaverStation(p, e).st !== st) continue;
+      if (ty && rpTypeOf(e) !== ty) continue;
       const i = idx(e.d);
       months[i].n++;
       ev.push({ p, e, d: e.d, i, division: dv, station: e.station || '(no station)', kind: e.kind, reasons: e.exit.reasons,
@@ -3509,15 +3525,15 @@ function lvInsights(D) {
 }
 
 function renderLeaverTrends() {
-  const md = MD(), div = S.lvDiv || '', st = S.lvSt || '';
-  const D = lvTrendData(div, st);
+  const md = MD(), div = S.lvDiv || '', st = S.lvSt || '', ty = S.lvTy || '';
+  const D = lvTrendData(div, st, ty);
   const { months, rec, pri, roll, lc, ev, years, N } = D;
   const total = ev.length;
-  const divSel = `<div class="panel io-bar"><div class="io-f"><div class="fg"><label class="fl" for="lv-div">Division</label><select id="lv-div" data-lvdiv>${[['', 'All divisions'], ...C.DIVS.map(d => [d, d])].map(([v, l]) => `<option value="${esc(v)}"${v === div ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>${lvStSeg()}</div>
-    <p class="io-scope">${st ? esc(LV_ST_NOTE) + ' Headcount for turnover uses the same split. ' : ''}Every departure recorded from ${C.MONTHS[D.wm - 1]} ${D.wy} to today. Moves between group companies are not leavers. The year on the Files tab only sets where the history starts.${md.ghosts ? ' ' + plural(md.ghosts, 'probable unfiled departure') + ' (no record of any kind for three years, no hours) ' + (md.ghosts === 1 ? 'is' : 'are') + ' left out of headcount, as on In & Out.' : ''}</p></div>`;
+  const divSel = `<div class="panel io-bar"><div class="io-f"><div class="fg"><label class="fl" for="lv-div">Division</label><select id="lv-div" data-lvdiv>${[['', 'All divisions'], ...C.DIVS.map(d => [d, d])].map(([v, l]) => `<option value="${esc(v)}"${v === div ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>${lvStSeg()}${lvTySeg()}</div>
+    <p class="io-scope">${st ? esc(LV_ST_NOTE) + ' Headcount for turnover uses the same split. ' : ''}${ty ? esc(LV_TY_NOTE) + ' Staff type is only known once someone leaves, so turnover here is ' + rpTypeLabel(ty).toLowerCase() + ' leavers against the whole headcount. ' : ''}Every departure recorded from ${C.MONTHS[D.wm - 1]} ${D.wy} to today. Moves between group companies are not leavers. The year on the Files tab only sets where the history starts.${md.ghosts ? ' ' + plural(md.ghosts, 'probable unfiled departure') + ' (no record of any kind for three years, no hours) ' + (md.ghosts === 1 ? 'is' : 'are') + ' left out of headcount, as on In & Out.' : ''}</p></div>`;
   const csvBtn = `<div class="head-acts"><button class="btn" data-act="lv-trend-csv" ${total ? '' : 'disabled'}>Monthly CSV</button></div>`;
-  const sub = `How leaving has changed over time${div ? ' in ' + esc(div) : ''}${st ? (div ? ',' : '') + ' under ' + st : ''}. These are patterns in the records, not explanations: they show when and who, not why.`;
-  if (!total) return head('Leavers', sub, csvBtn) + lvTabs() + divSel + emptyState('No departures in this period', `Nobody is recorded as leaving between ${C.MONTHS[D.wm - 1]} ${D.wy} and today${div ? ' in ' + div : ''}${st ? ' under ' + st : ''}.`);
+  const sub = `How leaving has changed over time${div ? ' in ' + esc(div) : ''}${st ? (div ? ',' : '') + ' under ' + st : ''}${ty ? ', ' + rpTypeLabel(ty).toLowerCase() + ' staff only' : ''}. These are patterns in the records, not explanations: they show when and who, not why.`;
+  if (!total) return head('Leavers', sub, csvBtn) + lvTabs() + divSel + emptyState('No departures in this period', `Nobody is recorded as leaving between ${C.MONTHS[D.wm - 1]} ${D.wy} and today${div ? ' in ' + div : ''}${st ? ' under ' + st : ''}${ty ? ' among ' + rpTypeLabel(ty).toLowerCase() + ' staff' : ''}.`);
 
   const tile = (l, v, c) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="kpi-v">${v}</div><div class="kpi-c">${c}</div></div>`;
   const chg = (a, b) => b == null ? '' : b === 0 ? (a === 0 ? 'same as before' : 'up from none') : a === b ? 'same as before' : (a > b ? '+' : '−') + Math.round(100 * Math.abs(a - b) / b) + '% on the 12 months before (' + fmt(b) + ')';
@@ -3598,17 +3614,18 @@ function renderLeaverTrends() {
 }
 
 function csvLvTrends() {
-  const D = lvTrendData(S.lvDiv || '', S.lvSt || '');
-  downloadCSV('leavers-trends-monthly' + (S.lvDiv ? '-' + S.lvDiv.toLowerCase() : '') + (S.lvSt ? '-' + S.lvSt.toLowerCase() : '') + '.csv',
+  const D = lvTrendData(S.lvDiv || '', S.lvSt || '', S.lvTy || '');
+  downloadCSV('leavers-trends-monthly' + (S.lvDiv ? '-' + S.lvDiv.toLowerCase() : '') + (S.lvSt ? '-' + S.lvSt.toLowerCase() : '') + (S.lvTy ? '-' + S.lvTy : '') + '.csv',
     ['Month', 'Leavers', 'Headcount at month end', 'Leavers, 12 months to this month', 'Turnover, 12 months to this month (%)', 'Complete month'],
     D.months.map((mo, i) => [C.MONTHS[mo.m - 1] + ' ' + mo.y, mo.n, D.hcAll[i + 1], D.roll[i] ? D.roll[i].n : '', D.roll[i] && D.roll[i].pct != null ? +D.roll[i].pct.toFixed(2) : '', mo.partial ? 'no' : 'yes']));
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act="lv-tab"],[data-act="lv-trend-csv"],[data-act="lv-st"]');
+  const t = e.target.closest('[data-act="lv-tab"],[data-act="lv-trend-csv"],[data-act="lv-st"],[data-act="lv-ty"]');
   if (!t || !S.model) return;
   if (t.dataset.act === 'lv-tab') { S.lvTab = t.dataset.v; render(); }
   else if (t.dataset.act === 'lv-st') { S.lvSt = t.dataset.v; render(); }
+  else if (t.dataset.act === 'lv-ty') { S.lvTy = t.dataset.v; render(); }
   else csvLvTrends();
 });
 document.addEventListener('change', e => {
@@ -4368,7 +4385,7 @@ function presetSnapshot() {
     sk: pick(S.sk, ['loc', 'div', 'from', 'to', 'q', 'all', 'sort']),
     io: pick(S.io, ['div', 'station', 'month', 'kind', 'reason', 'tab', 'sort']),
     mpv: pick(S.mpv, ['div', 'fig', 'mode']),
-    sort: pick(S.sort, ['key', 'dir']), lvTab: S.lvTab, lvDiv: S.lvDiv, lvSt: S.lvSt, anon: S.anon, ovStation: S.ovStation, rp: pick(S.rp, ['st', 'ty', 'from', 'to']),
+    sort: pick(S.sort, ['key', 'dir']), lvTab: S.lvTab, lvDiv: S.lvDiv, lvSt: S.lvSt, lvTy: S.lvTy, anon: S.anon, ovStation: S.ovStation, rp: pick(S.rp, ['st', 'ty', 'from', 'to']),
   };
 }
 function presetApply(p) {
@@ -4377,6 +4394,7 @@ function presetApply(p) {
   if (st.lvTab) S.lvTab = st.lvTab;
   if (st.lvDiv != null) S.lvDiv = st.lvDiv;
   if (st.lvSt != null) S.lvSt = st.lvSt;
+  if (st.lvTy != null) S.lvTy = st.lvTy;
   if (st.ovStation != null) S.ovStation = st.ovStation;
   if (st.rp && typeof st.rp === 'object') Object.assign(S.rp, st.rp);
   if (typeof st.anon === 'boolean' && st.anon !== S.anon) setAnon(st.anon);
