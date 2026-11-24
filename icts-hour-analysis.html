@@ -471,6 +471,18 @@ table.mp { font-size: .9rem; }
 .t.mp tbody th { text-align: left; font-weight: 500; color: var(--ink); position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 170px; font-size: .9rem; padding-left: 22px; }
 .t.mp thead th:first-child { position: sticky; left: 0; z-index: 3; }
 .t.mp tr.grp th { background: var(--surface-2); font-weight: 650; color: var(--ink-2); padding-left: 10px; font-size: .8rem; letter-spacing: .01em; }
+/* a division row: its totals, and a button that shows or hides its stations */
+.t.mp tr.mp-div th, .t.mp tr.mp-div td { font-weight: 650; background: var(--surface-2); border-top: 1px solid var(--line-2); }
+.t.mp tr.mp-div th { padding: 0; }
+.mp-tog { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 0; background: none; font: inherit; font-weight: 650; color: var(--ink); text-align: left; cursor: pointer; }
+.mp-tog:hover { color: var(--brand); }
+.mp-tog:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.mp-tog .chev { width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; flex: none; margin-right: 2px; }
+.mp-tog[aria-expanded="true"] .chev { transform: rotate(45deg); margin-top: -3px; }
+.mp-tog .mp-n { font-weight: 400; color: var(--muted); font-size: .8rem; }
+.t.mp tr.mp-st th { padding-left: 34px; font-weight: 400; }
+.mp-acts { display: flex; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .mp-tog .chev { transition: none; } }
 .t.mp tr.sub th, .t.mp tr.sub td { font-weight: 650; background: var(--surface-2); }
 .t.mp tr.sub th { padding-left: 10px; }
 .t.mp tr.grand th, .t.mp tr.grand td { font-weight: 700; border-top: 2px solid var(--line-2); background: var(--amber-soft); }
@@ -1763,6 +1775,7 @@ const fresh = () => ({
   lvSt: '',             // Leavers tab, both views: station ('' both | LCA | PFO)
   lvTy: '',             // Leavers tab, both views: staff type ('' both | permanent | seasonal)
   mpv: { from: '', to: '', div: '', fig: 'end', mode: 'computed' }, mpMap: null,
+  mpOpen: {},           // Manpower: divisions opened or closed by the person; a division not in here is collapsed, unless it is the one picked in Division
   io: { div: '', station: '', month: 0, kind: '', reason: '', tab: 'left', sort: { key: 'date', dir: -1 } },
 });
 let S = fresh();
@@ -3151,20 +3164,25 @@ function renderManpower() {
     return { label, cells, wb, key: null };
   };
   let body = '';
-  const renderRow = (r, cls, label) => {
+  const renderRow = (r, cls, label, tipLabel = label) => {
     const tds = idx.map(i => {
       const cv = cellVal(r, i);
       const wb = r.key ? wbAll(r.key, i) : null;
-      return `<td class="num${diffCls(cv.val)}${G.months[i].partial ? ' part' : ''}" data-tip="${esc(tipFor(label, i, r.cells[i], wb))}">${fmtCell(cv.val, v.mode === 'diff')}</td>`;
+      return `<td class="num${diffCls(cv.val)}${G.months[i].partial ? ' part' : ''}" data-tip="${esc(tipFor(tipLabel, i, r.cells[i], wb))}">${fmtCell(cv.val, v.mode === 'diff')}</td>`;
     }).join('');
     const pc = v.mode === 'computed' ? fmtCell(periodVal(idx.map(i => r.cells[i]))) : '';
     return `<tr class="${cls}"><th scope="row">${label}</th>${tds}<td class="num per">${pc}</td></tr>`;
   };
+  // Each division is one row carrying its totals. It starts collapsed (24 November 2026) and opens to show
+  // its stations underneath; picking a single division in Division opens it.
+  const isOpen = d => d in S.mpOpen ? S.mpOpen[d] : v.div === d;
   for (const g of groups) {
-    body += `<tr class="grp"><th colspan="${idx.length + 2}">${esc(g.d)}</th></tr>`;
-    g.rs.forEach(r => body += renderRow(r, '', esc(r.station)));
-    body += renderRow(sumRow(g.rs, g.d + ' total'), 'sub', esc(g.d) + ' total');
+    const open = isOpen(g.d), id = 'mp-tog-' + g.d.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const tog = `<button class="mp-tog" id="${id}" data-act="mp-grp" data-v="${esc(g.d)}" aria-expanded="${open}" title="${open ? 'Hide' : 'Show'} the ${esc(g.d)} stations"><span class="chev" aria-hidden="true"></span>${esc(g.d)}<span class="mp-n">${plural(g.rs.length, 'station')}</span></button>`;
+    body += renderRow(sumRow(g.rs, g.d + ' total'), 'mp-div' + (open ? ' open' : ''), tog, g.d + ' total');
+    if (open) g.rs.forEach(r => body += renderRow(r, 'mp-st', esc(r.station)));
   }
+  const allOpen = groups.length > 0 && groups.every(g => isOpen(g.d));
   const grand = sumRow(rows, 'All');
   body += renderRow(grand, 'grand', v.div ? esc(v.div) + ', all stations' : 'All divisions');
 
@@ -3184,7 +3202,7 @@ function renderManpower() {
     <div class="fg"><label class="fl" for="mp-div">Division</label><select id="mp-div" data-mp="div"><option value="">All divisions</option>${divs.map(d => `<option${d === v.div ? ' selected' : ''}>${esc(d)}</option>`).join('')}</select></div>
     <div class="fg"><span class="fl">Figure</span>${figSeg}</div>
     ${modeSeg}
-    <div class="fg"><span class="fl">&nbsp;</span><button class="btn sm" data-act="mp-csv">Download CSV</button></div>
+    <div class="fg"><span class="fl">&nbsp;</span><div class="mp-acts"><button class="btn sm" data-act="mp-all" data-v="${allOpen ? '' : '1'}">${allOpen ? 'Collapse all' : 'Expand all'}</button><button class="btn sm" data-act="mp-csv">Download CSV</button></div></div>
   </div></div>`;
   const nChecked = rows.length * G.months.length;
   const ok = !G.breaks.length;
@@ -3198,7 +3216,7 @@ function renderManpower() {
   const grid = `<div class="panel"><div class="tbl-wrap mp-wrap" id="mp-scroll" data-keep><table class="t mp">
       <thead><tr><th scope="col">${esc(MP_FIGS.find(f => f[0] === v.fig)[1])}${v.mode === 'diff' ? ', difference' : v.mode === 'workbook' ? ', workbook' : ''}</th>${idx.map(i => `<th class="num" scope="col">${mlabelShort(G.months[i].key)}${G.months[i].partial ? '*' : ''}</th>`).join('')}<th class="num per" scope="col">${v.mode === 'computed' ? 'Period' : ''}</th></tr></thead>
       <tbody>${body}</tbody><tbody class="tov-b">${tov}</tbody></table></div>
-    <div class="panel-foot small muted">Rows are division and station of each person’s posting on that day. In and out count joiners and people moving in, leavers and people moving out; a move between stations or companies is never a joiner or a leaver. Someone who joins and leaves inside the same month appears in neither.${G.months.some(m => m.partial) ? ' * The current month runs to today.' : ''} Turnover counts leavers only.${hiddenRows ? ' ' + plural(hiddenRows, 'station row') + ' with nobody in ' + (hiddenRows === 1 ? 'it' : 'them') + ' during this period ' + (hiddenRows === 1 ? 'is' : 'are') + ' hidden.' : ''}</div></div>`;
+    <div class="panel-foot small muted">Each division row shows its totals; click it to show or hide its stations. Rows are division and station of each person’s posting on that day. In and out count joiners and people moving in, leavers and people moving out; a move between stations or companies is never a joiner or a leaver. Someone who joins and leaves inside the same month appears in neither.${G.months.some(m => m.partial) ? ' * The current month runs to today.' : ''} Turnover counts leavers only.${hiddenRows ? ' ' + plural(hiddenRows, 'station row') + ' with nobody in ' + (hiddenRows === 1 ? 'it' : 'them') + ' during this period ' + (hiddenRows === 1 ? 'is' : 'are') + ' hidden.' : ''}</div></div>`;
 
   return head('Manpower', 'Headcount by station and month, worked out from the employment records rather than typed.') + controls + check + modeNote + grid +
     (hasWb ? workbookPanels(wrows, map, G) : `<div class="note info">${ICON.info}<span>Add the manpower workbook (sheets START OF MONTH, IN, OUT, END OF MONTH) on the Files tab to compare it with these figures.</span></div>`) +
@@ -3295,6 +3313,8 @@ document.addEventListener('click', e => {
   else if (a === 'mp-mode') { S.mpv.mode = t.dataset.v; render(); }
   else if (a === 'mp-csv') csvManpower();
   else if (a === 'mp-fix-csv') csvFix();
+  else if (a === 'mp-grp') { const d = t.dataset.v; S.mpOpen[d] = t.getAttribute('aria-expanded') !== 'true'; render(); }
+  else if (a === 'mp-all') { const open = !!t.dataset.v; [...new Set(mpCompute(MD()).rows.map(r => r.division))].forEach(d => { S.mpOpen[d] = open; }); render(); }
 });
 
 /* ==========================================================================
