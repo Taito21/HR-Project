@@ -574,6 +574,14 @@ table.lv tbody tr:hover td.lvm { background: color-mix(in srgb, var(--amber-soft
 /* ---------- wide screens: use the whole page ---------- */
 .tab { min-height: 40px; }
 .ov-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+@media (min-width: 1100px) { .ov-grid.ov-main { grid-template-columns: minmax(0, 1.7fr) minmax(400px, 1fr); } }   /* room for the By month table */
+.t.ov-month tr.ov-fm td { background: var(--amber-soft); }
+.t.ov-month tr.ov-fm td:first-child { font-weight: 600; }
+.t.ov-month td:first-child { white-space: nowrap; }
+.t.ov-month th { white-space: normal; vertical-align: bottom; }
+.t.ov-month th, .t.ov-month td { padding-left: 10px; padding-right: 10px; }
+.t.ov-month th:first-child, .t.ov-month td:first-child { padding-left: 16px; }
+.t.ov-month th:last-child, .t.ov-month td:last-child { padding-right: 16px; }
 @media (min-width: 1100px) { .ov-grid { grid-template-columns: minmax(0, 1.85fr) minmax(360px, 1fr); align-items: stretch; } }
 .t.top .rk { width: 40px; color: var(--muted); font-weight: 600; }
 .t.top td:nth-child(2) { min-width: 200px; }
@@ -2373,59 +2381,49 @@ function hrOnlyNote(v) {
 }
 
 /* ================================================================ OVERVIEW */
+// General figures only (24 November 2026): totals and averages by month, with no ranking of people or
+// departments. Individual hours are on All employees and the Individual card.
 function renderOverview() {
   const md = MD();
   if (!md.period.Both.length) return noPayroll();
   const v = scoped(), per = v.per, fm = v.fm;
   if (!v.list.length) return head('Overview', '') + nobody();
   const mT = new Array(13).fill(0), mC = new Array(13).fill(0), mP = new Array(13).fill(0), by = { AS: new Array(13).fill(0), BX: new Array(13).fill(0) };
-  const dept = {};
-  for (const r of v.list) {
-    for (const k of per) { mT[k] += r.x.m[k]; mC[k] += r.x.c[k]; if (r.x.m[k] > 0) mP[k]++; by.AS[k] += r.x.by.AS[k]; by.BX[k] += r.x.by.BX[k]; }
-    for (const row of r.p.rows) {
-      if (S.f.co !== 'Both' && row.co !== S.f.co) continue;
-      if (S.f.dept && row.dept !== S.f.dept) continue;
-      const d = dept[row.dept] || (dept[row.dept] = { total: 0, focus: 0, people: new Set() });
-      d.total += row.h; if (row.m === fm) d.focus += row.h; d.people.add(r.p.id);
-    }
-  }
+  for (const r of v.list) for (const k of per) { mT[k] += r.x.m[k]; mC[k] += r.x.c[k]; if (r.x.m[k] > 0) mP[k]++; by.AS[k] += r.x.by.AS[k]; by.BX[k] += r.x.by.BX[k]; }
   const n = per.length;
   const avg = a => per.reduce((s, k) => s + a[k], 0) / n;
   const aT = avg(mT), aC = avg(mC), aP = avg(mP);
-  const hpp = mP[fm] ? mT[fm] / mP[fm] : 0, aHpp = per.reduce((s, k) => s + (mP[k] ? mT[k] / mP[k] : 0), 0) / n;
+  const hppOf = k => mP[k] ? mT[k] / mP[k] : 0;
+  const hpp = hppOf(fm), aHpp = per.reduce((s, k) => s + hppOf(k), 0) / n;
+  const tT = per.reduce((s, k) => s + mT[k], 0), tC = per.reduce((s, k) => s + mC[k], 0);
+  const paid = v.list.filter(r => per.some(k => r.x.m[k] > 0)).length;
   const fName = C.MONTHS[fm - 1];
   const tile = (label, val, cmp, avgTxt, series) => {
     const d = pct(cmp[0], cmp[1]);
     return `<div class="kpi"><div class="kpi-l">${label}</div><div class="kpi-v">${val}</div>
       <div class="kpi-c"><span class="delta ${d > 0.05 ? 'pos' : d < -0.05 ? 'neg' : ''}">${fmtPct(d)}</span> on the average month, ${avgTxt}</div>${series ? kpiBars(series, per, fm) : ''}</div>`;
   };
-  const station = S.ovStation || '';
-  const deptList = Object.entries(dept).filter(([name]) => !station || stationOf(name) === station)
-    .sort((a, b) => b[1].total - a[1].total).slice(0, 8);
-  const dMax = deptList.length ? deptList[0][1].total : 0;
-  const stationSeg = `<div class="seg" role="group">${[['', 'All'], ['LCA', 'LCA'], ['PFO', 'PFO']]
-    .map(([v, l]) => `<button data-act="ov-station" data-v="${v}" aria-pressed="${station === v}">${l}</button>`).join('')}</div>`;
-  const top = [...v.list].sort((a, b) => b.total - a.total).slice(0, 15);
   const groupDesc = [S.f.co === 'Both' ? 'AS and BX' : S.f.co, S.f.dept, S.f.status && md.hasHR ? STATUS_OPTS.find(o => o[0] === S.f.status)[1].toLowerCase() : '', S.f.q ? 'matching “' + S.f.q + '”' : ''].filter(Boolean).join(', ');
+  const monthRows = per.map(k => `<tr${k === fm ? ' class="ov-fm"' : ''}><td>${C.MONTHS[k - 1]}</td><td class="num"><b>${fmtH(mT[k])}</b></td><td class="num">${fmt(mP[k])}</td><td class="num">${mP[k] ? fmt(hppOf(k), 1) : '–'}</td><td class="num">€${fmt(mC[k])}</td></tr>`).join('');
 
-  return head('Overview', `${plural(v.list.length, 'person', 'people')} (${esc(groupDesc)}), ${esc(monthRange(per))} ${md.year}. ${fmtH(per.reduce((s, k) => s + mT[k], 0))} hours in all.`) + `
+  return head('Overview', `${plural(v.list.length, 'person', 'people')} (${esc(groupDesc)}), ${esc(monthRange(per))} ${md.year}. ${fmtH(tT)} hours in all.`) + `
     <div class="kpis">
       ${tile('Hours in ' + fName, fmtH(mT[fm]), [mT[fm], aT], fmtH(Math.round(aT)), mT)}
       ${tile('People paid in ' + fName, fmt(mP[fm]), [mP[fm], aP], fmt(aP, 1), mP)}
       ${tile('Hours per person in ' + fName, fmt(hpp, 1), [hpp, aHpp], fmt(aHpp, 1), mT.map((t, k) => mP[k] ? t / mP[k] : 0))}
       ${tile('Cost in ' + fName, '€' + fmt(mC[fm]), [mC[fm], aC], '€' + fmt(aC), mC)}
     </div>
-    <div class="ov-grid">
+    <div class="ov-grid ov-main">
       <div class="panel"><div class="panel-h"><h3>Hours per month</h3><div class="legend-i">${S.f.co === 'Both' ? '<span><i style="background:var(--as)"></i>AS</span><span><i style="background:var(--bx)"></i>BX</span>' : ''}<span><i class="avg-sw"></i>Average month ${fmtH(Math.round(aT))}</span></div></div>
         <div class="panel-b">${chartBox('ov-month', 330, monthBars({ per, series: companySeries(by, S.f.co), focus: fm, avg: aT, avgInLegend: true, topLabels: Object.fromEntries(per.map(k => [k, fmtK(mT[k])])) }))}</div></div>
-      <div class="panel"><div class="panel-h"><h3>Busiest departments</h3><div class="head-acts">${stationSeg}<span class="small muted">Hours over ${esc(monthRange(per))}</span></div></div>
-        <div class="panel-b">${deptList.length ? hbars(deptList.map(([name, d]) => ({ label: esc(name), value: fmtH(d.total) + ' h', raw: d.total, sub: `${plural(d.people.size, 'person', 'people')}, ${fmtH(d.focus)} h in ${esc(fName)}` })), dMax) : `<p class="small muted" style="padding:4px 0">No departments under ${esc(station)}.</p>`}</div></div>
+      <div class="panel"><div class="panel-h"><h3>By month</h3></div><div class="tbl-wrap"><table class="t ov-month">
+        <thead><tr><th>Month</th><th class="num">Hours</th><th class="num">People paid</th><th class="num">Hours per person</th><th class="num">Cost</th></tr></thead>
+        <tbody>${monthRows}</tbody>
+        <tfoot><tr class="sep"><td><b>Average</b></td><td class="num"><b>${fmtH(Math.round(aT))}</b></td><td class="num"><b>${fmt(aP, 1)}</b></td><td class="num"><b>${fmt(aHpp, 1)}</b></td><td class="num"><b>€${fmt(aC)}</b></td></tr>
+          <tr><td><b>Total</b></td><td class="num"><b>${fmtH(tT)}</b></td><td class="num"><b>${fmt(paid)}</b></td><td class="num">–</td><td class="num"><b>€${fmt(tC)}</b></td></tr></tfoot>
+      </table></div>
+        <p class="small muted panel-foot">${esc(fName)}, the month in focus, is highlighted. In the total, people paid counts each person once.</p></div>
     </div>
-    <div class="panel"><div class="panel-h"><h3>Top people</h3><div class="head-acts"><span class="small muted">By total hours, ${esc(monthRange(per))}</span><button class="btn sm" data-view="employees">All employees</button></div></div>
-      <div class="tbl-wrap"><table class="t top">
-        <thead><tr><th class="num rk">#</th><th>Employee</th><th>Department</th>${per.map(k => `<th class="num mcol${k === fm ? ' fcol' : ''}">${C.MON[k - 1]}</th>`).join('')}<th class="num">Average</th><th class="num">Total</th><th>Trend</th></tr></thead>
-        <tbody>${top.map((r, i) => `<tr><td class="num rk">${i + 1}</td><td>${personCell(r.p)}</td><td class="small">${esc(r.p.dept)}</td>${per.map(k => `<td class="num mcol${k === fm ? ' fcol' : ''}">${r.x.m[k] ? fmtH(r.x.m[k]) : '<span class="muted">–</span>'}</td>`).join('')}<td class="num">${fmt(r.avg, 1)}</td><td class="num"><b>${fmtH(r.total)}</b></td><td>${spark(r.x.m, per)}</td></tr>`).join('')}</tbody>
-      </table></div></div>
     ${hrOnlyNote(v)}`;
 }
 function head(title, sub, right = '') {
@@ -5084,6 +5082,7 @@ function renderPrivacy() {
       <li><b>Summary pack:</b> the per-employee sick leave sheet and the sick leave checks sheet are no longer included.</li>
       <li><b>Names hidden:</b> notes are now hidden in the leavers report too, and downloads use months for dates, age bands and no nationality, as above.</li>
       <li><b>Saved views</b> no longer keep the search box text. Views saved before this change are cleaned the first time they load.</li>
+      <li><b>Overview:</b> the Top people and Busiest departments rankings are gone. The tab shows general figures only: the month in focus, hours per month, and a By month table of hours, people paid, hours per person and cost.</li>
     </ul>`);
   const outside = sec('Outside the tool', `
     <p>Some of what makes this use of HR data sound can’t be built into a page. Worth settling with whoever handles data protection at ICTS:</p>
@@ -5134,7 +5133,6 @@ document.addEventListener('click', e => {
   else if (a === 'cmp-drop') { const k = t.dataset.key; if (S.cmp.mode === 'people') S.cmp.people = S.cmp.people.filter(x => String(x) !== k); else S.cmp.depts = S.cmp.depts.filter(x => x !== k); render(); }
   else if (a === 'cmp-mode') { S.cmp.mode = t.dataset.v; render(); }
   else if (a === 'cmp-add-dept') { const d = $('#cmp-dept').value; if (d && !S.cmp.depts.includes(d) && S.cmp.depts.length < 6) S.cmp.depts.push(d); render(); }
-  else if (a === 'ov-station') { S.ovStation = t.dataset.v; render(); }
 });
 document.addEventListener('change', e => {
   const t = e.target;
