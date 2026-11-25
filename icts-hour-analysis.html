@@ -2056,8 +2056,6 @@ function warnings() {
     const p = S.payroll[k], f = S.files.find(x => x.id === p.fileId), label = f ? f.name : k;
     if (p.totalsHours == null) out.push(['warn', label + ' has no Totals row, so its hours could not be checked.']);
     else if (Math.abs(p.parsedHours - p.totalsHours) >= 0.01) out.push(['warn', label + ': the employee rows add up to ' + fmtH(p.parsedHours) + ' hours but the Totals row says ' + fmtH(p.totalsHours) + ' (' + (p.parsedHours > p.totalsHours ? '+' : '') + fmtH(p.parsedHours - p.totalsHours) + '). A row may have been added or removed after the totals were worked out.']);
-    { const off = p.rows.filter(r => r.code && (p.company === 'CY') !== M_.isCyCode(r.code)).length;   // only Cyprus codes start with 20
-      if (off) out.push(['warn', label + ': ' + plural(off, 'row') + (p.company === 'CY' ? ' with a code that doesn’t start with 20, though every Cyprus code does.' : ' with a code starting with 20, which is a Cyprus code. Check the file is the right company.')]); }
     if (M_.EXTRA_CHECK.has(p.company) && !p.payCheck) out.push(['bad', label + ' has neither Μικτ. αποδ. nor ΓΕΣΥ & Λοιπά εργοδ., so pay can’t be checked against hours. Anyone paid as extra in it will look like they worked fewer hours.']);
     const miss = p.missing.filter(x => ['aka', 'dept', 'rate', 'cost', 'surname', 'name'].includes(x));
     if (miss.includes('aka')) out.push(['warn', label + ' has no Α.Κ.Α. column. People in it can\'t be linked to their other company or to the HR workbook by Α.Κ.Α.']);
