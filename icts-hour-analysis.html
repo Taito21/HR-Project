@@ -817,6 +817,11 @@ body.snapshot .print-head { padding: 18px var(--pad) 0; }
 .prv-dl dd { margin: 0; }
 .prv-ver { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 @media (max-width: 560px) { .prv-dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .prv-dl dd { margin-bottom: 8px; } }
+
+/* ---------- Overtime: hours a week per shift length (24 November 2026) ---------- */
+.ot-wk { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.ot-wk label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; white-space: nowrap; }
+.ot-wk input { width: 4.6rem; }
 </style>
 </head>
 <body>
@@ -1764,7 +1769,7 @@ const fresh = () => ({
   mp: null,             // {fileId, sheets, months, stations, divisions}
   sick: [],             // one per sick leave sheet: {fileId, location, dataYear, people, issues…}
   shifts: null,         // standard shift workbook: {fileId, rows, issues, conflicts…}
-  ot: { weekly: 40, tol: 1, useHR: true, useSick: true, only: '', sort: { key: 'over', dir: -1 } },
+  ot: { weekly: {}, tol: 1, useHR: true, useSick: true, only: '', sort: { key: 'over', dir: -1 } },   // weekly: hours a week by shift length, where changed from OT_WEEK_DEFAULTS
   anon: false,          // Hide names: names, codes, Α.Κ.Α. and notes replaced on screen and in every download; downloads also get months for dates, age bands and no nationality (see exportDay)
   sk: { year: 0, loc: '', div: '', from: 1, to: 0 },   // Sick leave tab: totals only, so no search, sorting or list of people (24 November 2026)
   pendingBufs: {},      // fileId → ArrayBuffer, only for payroll files awaiting month/company
@@ -3941,19 +3946,22 @@ document.addEventListener('change', e => {
    total per person per month, so "times" are months: a month counts as over
    or under when the hours differ from the expected hours by at least the
    tolerance (in shifts of that person's own length).
-   Expected hours = weekly hours ÷ 5 × weekdays in the month, less weekdays
-   before hire / after leaving (HR) and weekdays on sick leave (sick file).
+   Expected hours = the person's weekly hours ÷ 7 × days in the month, less
+   days before hire / after leaving (HR) and days on sick leave (sick file).
+   Since 24 November 2026 the weekly hours depend on the shift length, and are
+   spread over every day of the week, because staff work weekends as well as
+   weekdays. 12 h staff work 2 days on, 2 days off: 12 h × 7 ÷ 4 = 42 h a week.
    ========================================================================== */
-let _wd = null;
-function weekdaysOf(year) {
-  if (_wd && _wd.year === year) return _wd.m;
+const OT_WEEK_DEFAULTS = { 12: 42 }, OT_WEEK_FALLBACK = 40;
+// hours a week for a shift length: the person's own setting if they changed it, otherwise the default
+const otWeekly = len => { const w = S.ot.weekly; return w && typeof w === 'object' && +w[len] > 0 ? +w[len] : (OT_WEEK_DEFAULTS[len] ?? OT_WEEK_FALLBACK); };
+const otWeeklyTxt = lens => lens.map(l => fmtH(l) + ' h shifts ' + fmtH(otWeekly(l)) + ' h').join(', ');
+let _md = null;
+function monthDaysOf(year) {
+  if (_md && _md.year === year) return _md.m;
   const m = [];
-  for (let k = 1; k <= 12; k++) {
-    const a = [];
-    for (let d = C.dayOf(year, k, 1); d <= C.monthEnd(year, k); d++) { const w = new Date(d * C.DAY).getUTCDay(); if (w >= 1 && w <= 5) a.push(d); }
-    m[k] = a;
-  }
-  _wd = { year, m };
+  for (let k = 1; k <= 12; k++) { const a = []; for (let d = C.dayOf(year, k, 1); d <= C.monthEnd(year, k); d++) a.push(d); m[k] = a; }
+  _md = { year, m };
   return m;
 }
 const OT_TOLS = [[0.5, 'half a shift'], [1, '1 shift'], [2, '2 shifts'], [3, '3 shifts']];
@@ -3984,7 +3992,7 @@ function otModel() {
     const a = found.get(p.id) || []; a.push({ r, co, cross }); found.set(p.id, a);
   }
 
-  // sick weekdays per person, through the HR link (code + division)
+  // sick days per person, through the HR link (code + division)
   const sickBy = new Map();
   const useSick = S.ot.useSick && md.hasHR && S.sick.length > 0;
   if (useSick) {
@@ -3997,7 +4005,7 @@ function otModel() {
     }
   }
 
-  const wd = weekdaysOf(md.year), perDay = S.ot.weekly / 5, per = md.period.Both;
+  const wd = monthDaysOf(md.year), per = md.period.Both;
   const res = new Map();
   for (const [pid, hits] of found) {
     const p = md.people[pid];
@@ -4006,7 +4014,7 @@ function otModel() {
     // one shift length per person; two different ones (one per company) → the company with more hours
     const lens = [...new Set(hits.map(x => x.r.hours))];
     const pick = lens.length > 1 ? [...hits].sort((a, b) => (coH[b.co] || 0) - (coH[a.co] || 0))[0] : hits[0];
-    const shift = pick.r.hours;
+    const shift = pick.r.hours, perDay = otWeekly(shift) / 7;
     const sick = sickBy.get(pid);
     const months = [];
     const sum = { counted: 0, over: 0, under: 0, ok: 0, h: 0, exp: 0, hOver: 0, hUnder: 0, skipped: 0 };
@@ -4077,8 +4085,8 @@ function otColumns(per, fm) {
 }
 function otCell(c, shift) {
   if (!c || c.st === 'none') return '<span class="muted">–</span>';
-  const tipTxt = c.st === 'skip' ? `${fmtH(c.h)} h paid, but no working days expected${c.ne ? ' (' + plural(c.ne, 'weekday') + ' outside employment)' : ''}`
-    : `${fmtH(c.h)} h worked, ${fmtH(Math.round(c.exp))} h expected: ${fmtSignH(c.diff)} h, ${fmtSh(c.shifts)} shifts of ${fmtH(shift)} h${c.ne ? '. ' + plural(c.ne, 'weekday') + ' outside employment' : ''}`;   // sick weekdays shape the expected hours but are never named (24 November 2026)
+  const tipTxt = c.st === 'skip' ? `${fmtH(c.h)} h paid, but no working days expected${c.ne ? ' (' + plural(c.ne, 'day') + ' outside employment)' : ''}`
+    : `${fmtH(c.h)} h worked, ${fmtH(Math.round(c.exp))} h expected: ${fmtSignH(c.diff)} h, ${fmtSh(c.shifts)} shifts of ${fmtH(shift)} h${c.ne ? '. ' + plural(c.ne, 'day') + ' outside employment' : ''}`;   // sick weekdays shape the expected hours but are never named (24 November 2026)
   if (c.st === 'skip') return `<span class="ot-c skip" data-tip="${esc(tipTxt)}">?</span>`;
   const big = Math.abs(c.shifts) >= 2 * S.ot.tol ? ' big' : '';
   return `<span class="ot-c ${c.st === 'over' ? 'up' : c.st === 'under' ? 'dn' : 'ok'}${big}" data-tip="${esc(tipTxt)}">${fmtSh(c.shifts)}</span>`;
@@ -4134,7 +4142,7 @@ function otSettings(sc) {
   const seg = (k, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button data-act="ot-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${String(t[k]) === String(v)}">${esc(l)}</button>`).join('')}</div>`;
   const sickOk = md.hasHR && S.sick.length > 0;
   return `<div class="panel ot-bar"><div class="filters-in">
-    <div class="fg"><label class="fl" for="ot-weekly">Full-time hours a week</label><input id="ot-weekly" data-ot="weekly" type="number" min="1" max="84" step="0.5" value="${t.weekly}" style="width:6.5rem"></div>
+    <div class="fg"><span class="fl">Contracted hours a week</span><div class="ot-wk">${(sc.lens.length ? sc.lens : [8]).map(l => `<label for="ot-weekly-${l}">${fmtH(l)} h shifts <input id="ot-weekly-${l}" data-ot="weekly" data-len="${l}" type="number" min="1" max="84" step="0.5" value="${otWeekly(l)}"></label>`).join('')}</div></div>
     <div class="fg"><label class="fl" for="ot-tol">Count a month when it is off by at least</label><select id="ot-tol" data-ot="tol">${OT_TOLS.map(([v, l]) => `<option value="${v}"${v === t.tol ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
     ${sc.lens.length > 1 ? `<div class="fg"><span class="fl">Shift length</span>${seg('only', [['', 'All'], ...sc.lens.map(l => [String(l), fmtH(l) + ' h'])])}</div>` : ''}
     ${md.hasHR ? `<div class="fg"><span class="fl">Days before hire or after leaving</span>${seg('useHR', [['true', 'Leave out'], ['false', 'Count']])}</div>` : ''}
@@ -4154,8 +4162,8 @@ function renderOvertime() {
   const tot = rows.reduce((a, x) => { a.counted += x.counted; a.over += x.over; a.under += x.under; a.hOver += x.hOver; a.hUnder += x.hUnder; a.extra += x.extra; if (x.over) a.pOver++; if (x.under) a.pUnder++; return a; }, { counted: 0, over: 0, under: 0, hOver: 0, hUnder: 0, extra: 0, pOver: 0, pUnder: 0 });
   const often = rows.filter(x => x.counted >= 3 && x.over / x.counted >= 0.5).length, oftenU = rows.filter(x => x.counted >= 3 && x.under / x.counted >= 0.5).length;
   const tolTxt = OT_TOLS.find(x => x[0] === t.tol)[1];
-  const basis = [`Expected hours for a month are ${fmtH(t.weekly)} h a week spread over its weekdays (${fmtH(t.weekly / 5)} h a weekday)`,
-    md.hasHR && t.useHR ? 'leaving out weekdays before hire or after leaving' : '', o.useSick ? 'and weekdays on sick leave' : ''].filter(Boolean).join(', ');
+  const basis = [`Expected hours for a month are each shift length’s hours a week (${esc(otWeeklyTxt(sc.lens))}) spread over every day of the month, weekends included`,
+    md.hasHR && t.useHR ? 'leaving out days before hire or after leaving' : '', o.useSick ? 'and days on sick leave' : ''].filter(Boolean).join(', ');
   const sub = `${plural(rows.length, 'person', 'people')} with a standard shift, ${esc(monthRange(per))} ${md.year}. ${basis}. A month counts as over or under when the hours differ by at least ${tolTxt} of that person’s own length. Hours are counted across both companies; months with no payroll hours are not compared.`;
   const kpi = (l, val, c) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="kpi-v">${val}</div><div class="kpi-c">${c}</div></div>`;
 
@@ -4195,8 +4203,8 @@ function renderOvertime() {
       <div class="panel"><div class="panel-h"><h3>People over and under, by month</h3><div class="legend-i"><span><i style="background:var(--ot-up)"></i>Over</span><span><i style="background:var(--ot-dn)"></i>Under</span></div></div>
         <div class="panel-b">${chartBox('ot-month', 300, otChart(M, fm))}</div></div>
       <div class="panel"><div class="panel-h"><h3>By shift length</h3><span class="small muted">Averages per month compared</span></div><div class="tbl-wrap"><table class="t">
-        <thead><tr><th>Shift</th><th class="num">People</th><th class="num">Hours</th><th class="num">Expected</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
-        <tbody>${lenRows.map(r => `<tr><td><b>${fmtH(r.l)} h</b></td><td class="num">${fmt(r.people)}</td><td class="num">${r.n ? fmt(r.h / r.n, 1) : '–'}</td><td class="num">${r.n ? fmt(r.e / r.n, 1) : '–'}</td><td class="num">${fmt(r.over)} <span class="muted">${r.n ? fmt(100 * r.over / r.n, 0) + '%' : ''}</span></td><td class="num">${fmt(r.under)} <span class="muted">${r.n ? fmt(100 * r.under / r.n, 0) + '%' : ''}</span></td></tr>`).join('')}</tbody></table></div>
+        <thead><tr><th>Shift</th><th class="num">Hours a week</th><th class="num">People</th><th class="num">Hours</th><th class="num">Expected</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
+        <tbody>${lenRows.map(r => `<tr><td><b>${fmtH(r.l)} h</b></td><td class="num">${fmtH(otWeekly(r.l))}</td><td class="num">${fmt(r.people)}</td><td class="num">${r.n ? fmt(r.h / r.n, 1) : '–'}</td><td class="num">${r.n ? fmt(r.e / r.n, 1) : '–'}</td><td class="num">${fmt(r.over)} <span class="muted">${r.n ? fmt(100 * r.over / r.n, 0) + '%' : ''}</span></td><td class="num">${fmt(r.under)} <span class="muted">${r.n ? fmt(100 * r.under / r.n, 0) + '%' : ''}</span></td></tr>`).join('')}</tbody></table></div>
         <div class="tbl-wrap"><table class="t">
         <thead><tr><th>Month</th><th class="num">Over</th><th class="num">Under</th><th class="num">Hours above</th><th class="num">Hours below</th></tr></thead>
         <tbody>${M.map(x => `<tr${x.m === fm ? ' class="frow"' : ''}><td title="${plural(x.n, 'person', 'people')} compared">${C.MON[x.m - 1]}</td><td class="num">${fmt(x.over)}</td><td class="num">${fmt(x.under)}</td><td class="num">${fmtH(Math.round(x.hOver))}</td><td class="num">${fmtH(Math.round(x.hUnder))}</td></tr>`).join('')}</tbody></table></div></div>
@@ -4260,7 +4268,11 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (!t.matches('[data-ot]') || !S.model) return;
   const k = t.dataset.ot, n = +t.value;
-  if (k === 'weekly') { if (n >= 1 && n <= 84) S.ot.weekly = n; else t.value = S.ot.weekly; }
+  if (k === 'weekly') {
+    const len = t.dataset.len;
+    if (n >= 1 && n <= 84) S.ot.weekly = { ...(S.ot.weekly && typeof S.ot.weekly === 'object' ? S.ot.weekly : {}), [len]: n };
+    else t.value = otWeekly(len);
+  }
   else if (k === 'tol') S.ot.tol = n;
   render();
 });
@@ -4446,7 +4458,7 @@ function presetDescribe(st) {
   if (f.co && f.co !== 'Both') bits.push(f.co);
   if (f.dept) bits.push(f.dept);
   if (f.status) bits.push((STATUS_OPTS.find(o => o[0] === f.status) || [0, f.status])[1]);
-  if (st.view === 'overtime' && st.ot) { if (st.ot.only) bits.push(st.ot.only + ' h shifts'); bits.push(st.ot.weekly + ' h week'); }
+  if (st.view === 'overtime' && st.ot) { if (st.ot.only) bits.push(st.ot.only + ' h shifts'); }
   if (st.anon) bits.push('names hidden');
   return bits.join(', ');
 }
@@ -4521,7 +4533,7 @@ function filtersLine(viewId) {
     if (f.q) out.push('Search “' + f.q + '”');
     out.push('Month in focus ' + C.MONTHS[focusMonth() - 1]);
   }
-  if (viewId === 'overtime' && S.shifts) out.push(`${fmtH(S.ot.weekly)} h week, a month counts when off by ${OT_TOLS.find(x => x[0] === S.ot.tol)[1]}` + (S.ot.only ? ', ' + S.ot.only + ' h shifts only' : ''));
+  if (viewId === 'overtime' && S.shifts) out.push(`Hours a week: ${otWeeklyTxt(otScope() ? otScope().lens : [])}; a month counts when off by ${OT_TOLS.find(x => x[0] === S.ot.tol)[1]}` + (S.ot.only ? ', ' + S.ot.only + ' h shifts only' : ''));
   if (viewId === 'sick' && S.sick.length) out.push([S.sk.loc || 'All locations', S.sk.div || 'all divisions', C.MON[S.sk.from - 1] + ' to ' + C.MON[(S.sk.to || 12) - 1]].join(', '));
   return out.join('. ');
 }
@@ -4801,7 +4813,7 @@ async function buildPack() {
     ['Health information', 'Totals only: sick days and Health problems are never next to a person. See Privacy & changes in the tool.'],
     ...(S.anon ? [['Names hidden', 'Notes removed, dates shown as months, ages as bands, nationality and per-person reasons left out, small sick leave counts shown as <5. People can still be recognised from station and dates, so treat this file as personal data.']] : []),
   ];
-  if (S.shifts) about.push(['Overtime: full-time week', S.ot.weekly + ' hours'], ['Overtime: counts a month when off by', OT_TOLS.find(x => x[0] === S.ot.tol)[1]],
+  if (S.shifts) about.push(['Overtime: hours a week', otWeeklyTxt(otScope() ? otScope().lens : []) + ', spread over every day of the week'], ['Overtime: counts a month when off by', OT_TOLS.find(x => x[0] === S.ot.tol)[1]],
     ['Overtime: days before hire or after leaving', md.hasHR ? (S.ot.useHR ? 'Left out' : 'Counted') : 'No HR workbook'], ['Overtime: sick days', md.hasHR && S.sick.length ? (S.ot.useSick ? 'Left out' : 'Counted') : 'Not available']);
   about.push(['', ''], ['Files read', '']);
   files.forEach(f => about.push([f.name, f.kind === 'payroll' ? f.company + ' ' + C.MONTHS[f.month - 1] : { hr: 'Hirings & departures', manpower: 'Manpower report', sick: 'Sick leave', shifts: 'Standard shifts' }[f.kind] || f.kind]));
@@ -5077,7 +5089,7 @@ function renderPrivacy() {
       <dt>Shown</dt><dd>Sick days, spells and employees with sick leave, by month and for the period, on the Sick leave tab. How often Health problems is given as a reason, in In & Out, Leavers › Trends and the Reasons sheet of the leavers report Excel. One sick day total for each group of leavers on the Reports tab.</dd>
       <dt>Never next to a person</dt><dd>The Individual card, All employees, the In & Out lists, Leavers, the rows of the Reports tab and every download leave out sick days and Health problems. Someone who gave only Health problems shows no reason in those lists.</dd>
       <dt>Small groups</dt><dd>A health total is only shown for a group of 5 or more people. On In & Out it is also held back while the departure filters or the search narrow the list, because a short list of names could be matched to the count.</dd>
-      <dt>Overtime</dt><dd>With Sick days set to Leave out, sick weekdays are still taken off a person’s expected hours, so a month on sick leave isn’t counted as a short month. How many sick days someone had is not shown.</dd>
+      <dt>Overtime</dt><dd>With Sick days set to Leave out, sick days are still taken off a person’s expected hours, so a month on sick leave isn’t counted as a short month. How many sick days someone had is not shown.</dd>
       <dt>Data quality</dt><dd>The Data quality list on the Sick leave tab still points to sheet rows that need fixing, by row number and date, without names, so the source file can be corrected.</dd>
       <dt>Notes</dt><dd>Notes (ΣΧΟΛΙΑ) and the ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ column are shown as they are written, for HR to read. The tool can’t tell whether free text mentions health, so keep it general when filling in the HR workbook: “health reasons” is enough, a diagnosis isn’t needed for anything here.</dd>
     </dl>`);
