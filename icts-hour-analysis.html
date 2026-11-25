@@ -67,7 +67,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   --ink: #0F1E3A; --ink-2: #3D4B65; --muted: #69778F; --line: #D9DFEA; --line-2: #B8C3D5;
   /* “state” marker (month in focus, selected, read files): brand navy */
   --amber: #14325F; --amber-ink: #FFFFFF; --amber-soft: #E4EAF5; --amber-line: #14325F;
-  --as: #2E62B9; --as-soft: #DFE8F8; --bx: #0D8474; --bx-soft: #D3EEEA;
+  --as: #2E62B9; --as-soft: #DFE8F8; --bx: #0D8474; --bx-soft: #D3EEEA; --cy: #8E44AD; --cy-soft: #F1E6F7;
   --ok: #22804A; --warn: #A15C00; --warn-soft: #FFF1DC; --bad: #B4231B; --bad-soft: #FBE4E1;
   --focus: #234C8C;
   --c1: #2E62B9; --c2: #E0662A; --c3: #22804A; --c4: #8E44AD; --c5: #C11E26; --c6: #0B7A8C;
@@ -82,7 +82,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   --bg: #0A1322; --surface: #101C31; --surface-2: #15233C; --sunk: #081020;
   --ink: #E6ECF6; --ink-2: #B2BED3; --muted: #8190A8; --line: #213150; --line-2: #33466B;
   --amber: #3B64AE; --amber-ink: #FFFFFF; --amber-soft: #19294A; --amber-line: #5D86D2;
-  --as: #7FA6EE; --as-soft: #1C2F52; --bx: #43C3B1; --bx-soft: #103A34;
+  --as: #7FA6EE; --as-soft: #1C2F52; --bx: #43C3B1; --bx-soft: #103A34; --cy: #CC8BEA; --cy-soft: #34204A;
   --ok: #62C38D; --warn: #E5A83E; --warn-soft: #3A2C12; --bad: #EE7F72; --bad-soft: #3C1D1B;
   --focus: #9DB9EA;
   --c1: #8CA9F2; --c2: #FF9A5C; --c3: #69C97A; --c4: #CC8BEA; --c5: #FF7B7B; --c6: #4FC3D6;
@@ -163,6 +163,7 @@ body:not(.in-app) { border-top: 3px solid var(--brand-red); }
 .cov .lab { display: flex; align-items: center; font-weight: 650; font-size: .9rem; }
 .cov .lab::before { content: ''; width: 3px; height: 70%; border-radius: 2px; margin-right: 7px; background: currentColor; }
 .cov .lab.as { color: var(--as); } .cov .lab.bx { color: var(--bx); }
+.cov .lab.cy { color: var(--cy); }
 .cov .mh { font-size: .75rem; color: var(--muted); text-align: center; padding-bottom: 2px; }
 .cov .mh .l { display: none; }
 .cell { aspect-ratio: 1 / 1.08; border-radius: 3px; border: 1px solid var(--line); background: var(--surface-2);
@@ -235,6 +236,7 @@ table.t { border-collapse: collapse; width: 100%; font-size: .933rem; }
 .t tr.dim .fname { text-decoration: line-through; }
 .co { display: inline-block; font-weight: 650; font-size: .8rem; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
 .co.as { color: var(--as); background: var(--as-soft); } .co.bx { color: var(--bx); background: var(--bx-soft); }
+.co.cy { color: var(--cy); background: var(--cy-soft); }
 .co.hr, .co.mp { color: var(--ink-2); background: var(--sunk); }
 .chk { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; white-space: nowrap; }
 .chk.ok { color: var(--ok); } .chk.warn { color: var(--warn); } .chk.bad { color: var(--bad); } .chk.none { color: var(--muted); font-weight: 500; }
@@ -317,7 +319,10 @@ body.dragging.in-app .overlay { display: grid; }
 .person:hover .pn { text-decoration: underline; text-underline-offset: 2px; }
 .pc { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .code { font-size: .75rem; font-weight: 600; padding: 0 5px; border-radius: 3px; white-space: nowrap; line-height: 1.5; }
-.code.as { color: var(--as); background: var(--as-soft); } .code.bx { color: var(--bx); background: var(--bx-soft); } .code.hr { color: var(--ink-2); background: var(--sunk); }
+.code.as { color: var(--as); background: var(--as-soft); } .code.bx { color: var(--bx); background: var(--bx-soft); }
+.code.cy { color: var(--cy); background: var(--cy-soft); }
+.xp-m { color: var(--cy); font-weight: 700; margin-left: 1px; }
+.xp-c { color: var(--muted); } .code.hr { color: var(--ink-2); background: var(--sunk); }
 .badge { font-size: .75rem; font-weight: 650; padding: 1px 7px; border-radius: 10px; white-space: nowrap; border: 1px solid transparent; }
 .badge.ok { color: var(--ok); border-color: currentColor; }
 .badge.mv { color: var(--as); border-color: currentColor; }
@@ -763,7 +768,7 @@ body.snapshot .print-head { padding: 18px var(--pad) 0; }
     --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F5F7FB; --sunk: #E5E9F1;
     --ink: #0F1E3A; --ink-2: #3D4B65; --muted: #69778F; --line: #D9DFEA; --line-2: #B8C3D5;
     --amber: #14325F; --amber-ink: #FFFFFF; --amber-soft: #E4EAF5; --amber-line: #14325F;
-    --as: #2E62B9; --as-soft: #DFE8F8; --bx: #0D8474; --bx-soft: #D3EEEA;
+    --as: #2E62B9; --as-soft: #DFE8F8; --bx: #0D8474; --bx-soft: #D3EEEA; --cy: #8E44AD; --cy-soft: #F1E6F7;
     --ok: #22804A; --warn: #A15C00; --warn-soft: #FFF1DC; --bad: #B4231B; --bad-soft: #FBE4E1;
     --c1: #2E62B9; --c2: #E0662A; --c3: #22804A; --c4: #8E44AD; --c5: #C11E26; --c6: #0B7A8C;
     --ot-up: #D2691E; --ot-up-soft: #FBE8D8; --ot-dn: #2E62B9; --ot-dn-soft: #DFE8F8;
@@ -997,8 +1002,9 @@ function matchSheets(names, wanted) {
   }
   return found;
 }
-// Company then a two-digit month: AS01 … AS12, BX01 … BX12 (AS1, AS-01 and as_01 are read too)
-const PAYROLL_NAME = /^(as|bx)[\s_-]?(\d{1,2})$/i;
+// Company then a two-digit month: AS01 … AS12, BX01 … BX12, CY01 … CY12 for Cyprus (AS1, AS-01, as_01 and CYPRUS01 are read too)
+const PAYROLL_NAME = /^(as|bx|cy|cyprus)[\s_-]?(\d{1,2})$/i;
+const payrollCompany = s => /^cy/i.test(s) ? 'CY' : s.toUpperCase();
 
 function classify(fileName, sheetNames) {
   const hr = matchSheets(sheetNames, HR_SHEETS);
@@ -1009,7 +1015,7 @@ function classify(fileName, sheetNames) {
   if (print) {
     const base = fileName.replace(/\.[^.]+$/, '').trim();
     const m = PAYROLL_NAME.exec(base);
-    if (m && +m[2] >= 1 && +m[2] <= 12) return { kind: 'payroll', sheet: print, month: +m[2], company: m[1].toUpperCase() };
+    if (m && +m[2] >= 1 && +m[2] <= 12) return { kind: 'payroll', sheet: print, month: +m[2], company: payrollCompany(m[1]) };
     return { kind: 'payroll-unnamed', sheet: print, guess: guessPayroll(base) };
   }
   if (isSickBook(sheetNames)) return { kind: 'sick', sheets: sickCandidates(sheetNames) };
@@ -1018,7 +1024,7 @@ function classify(fileName, sheetNames) {
 // Best guess for an oddly named payroll file, to prefill the inline form
 function guessPayroll(base) {
   const f = base.toLowerCase();
-  let company = /(^|[^a-z])bx([^a-z]|$)/.test(f) ? 'BX' : /(^|[^a-z])as([^a-z]|$)/.test(f) ? 'AS' : '';
+  let company = /(^|[^a-z])bx([^a-z]|$)/.test(f) ? 'BX' : /(^|[^a-z])as([^a-z]|$)/.test(f) ? 'AS' : /(^|[^a-z])(cy|cyprus)([^a-z]|$)/.test(f) ? 'CY' : '';
   let month = 0;
   MONTHS.forEach((m, i) => { if (f.includes(m.toLowerCase().slice(0, 3))) month = i + 1; });
   if (!month) { const d = /(?:^|\D)(1[0-2]|0?[1-9])(?:\D|$)/.exec(f); if (d) month = +d[1]; }
@@ -1032,6 +1038,9 @@ const PAYROLL_FIELDS = {
   dept: ['Dept.', 'Dept', 'Department'], rate: ['RATE'], hours: ['Ωρες Εργασίας', 'Ώρες Εργασίας'],
   cost: ['ΚΟΣΤΟΣ'], aka: ['Α.Κ.Α.', 'ΑΚΑ'],
 };
+// Pay columns, for checking pay against hours (the Cyprus payroll): gross pay where the file has it,
+// otherwise the employer's cost (ΚΟΣΤΟΣ) less the employer's contributions. Optional: never reported missing.
+const PAYROLL_PAY_FIELDS = { gross: ['Μικτ. αποδ.', 'Μικτές αποδοχές', 'Μικτ. Αποδοχές'], erSI: ['ΚΑ εργοδ.'], erOther: ['ΓΕΣΥ & Λοιπά εργοδ.'], erPF: ['PF Employer'] };
 const isTotals = v => v != null && fold(String(v)).trim() === 'TOTALS';
 function isIntCell(v) {
   if (typeof v === 'number') return Number.isInteger(v) && v > 0;
@@ -1050,8 +1059,15 @@ function parsePayroll(wb, sheetName) {
   }
   if (!cols) return { error: 'No header row with “Code” and “Ωρες Εργασίας” on the Print sheet.' };
   const missing = Object.keys(PAYROLL_FIELDS).filter(k => cols[k] < 0);
+  const pc = findCols(ws, hr, PAYROLL_PAY_FIELDS), payCheck = pc.gross >= 0 || pc.erOther >= 0;
   const rows = []; let parsedHours = 0, parsedCost = 0, totalsHours = null, totalsCost = null;
   const get = (r, k) => cols[k] >= 0 ? cell(ws, r, cols[k]) : undefined;
+  const pay = (r, k) => pc[k] >= 0 ? num(cell(ws, r, pc[k])) : 0;
+  const grossOf = (r, cost) => {
+    const g = pay(r, 'gross');
+    if (g > 0) return g;
+    return pc.erOther >= 0 && cost > 0 ? +(cost - pay(r, 'erSI') - pay(r, 'erOther') - pay(r, 'erPF')).toFixed(2) : null;
+  };
   for (let r = hr + 1; r <= rg.e.r; r++) {
     const aa = get(r, 'aa'), code = get(r, 'code');
     if (isTotals(aa) || isTotals(code)) {                     // label sits under Code (§3.1)
@@ -1067,10 +1083,11 @@ function parsePayroll(wb, sheetName) {
       dept: cleanText(get(r, 'dept')) || '(no department)',
       rate: num(get(r, 'rate')), hours, cost,
       aka: digitsKey(get(r, 'aka')),
+      gross: payCheck ? grossOf(r, cost) : null,
     });
     parsedHours += hours; parsedCost += cost;
   }
-  return { rows, parsedHours, parsedCost, totalsHours, totalsCost, missing, headerRow: hr + 1 };
+  return { rows, parsedHours, parsedCost, totalsHours, totalsCost, missing, payCheck, headerRow: hr + 1 };
 }
 
 /* ---------- HR workbook (§3.2) ----------------------------------------- */
@@ -1478,7 +1495,21 @@ if (typeof module !== 'undefined') module.exports = root.Core;
 'use strict';
 const C = root.Core;
 
-const DIV_CO = { AIRPORTS: 'AS', BORDER: 'BX' };
+const DIV_CO = { AIRPORTS: 'AS', BORDER: 'BX', CYPRUS: 'CY' };
+// Pay beyond the recorded hours (24 November 2026). In the Cyprus payroll some people are paid partly as
+// "extra" rather than by the hour: a wage difference for where they worked, or a fixed wage plus extra for
+// specific work. Their hours then don't show the time behind their pay, so a month is marked "paid beyond
+// its hours" (xe = the euros not explained) when gross pay is more than the hours explain by over EXTRA_MIN
+// and EXTRA_SHARE. A RATE of MONTHLY_RATE or more is a monthly wage; below it, an hourly rate. Hours stay
+// as recorded; the views leave those months out of every average and comparison of hours.
+const EXTRA_CHECK = new Set(['CY']);
+const MONTHLY_RATE = 100, EXTRA_MIN = 20, EXTRA_SHARE = 0.02;
+function extraPay(r) {
+  if (!(r.gross > 0) || !(r.rate > 0)) return 0;
+  const base = r.rate >= MONTHLY_RATE ? r.rate : r.rate * (r.hours || 0);
+  const extra = r.gross - base;
+  return extra > Math.max(EXTRA_MIN, EXTRA_SHARE * base) ? +extra.toFixed(2) : 0;
+}
 const LEFT_KINDS = new Set(['resigned', 'contract', 'dismissed', 'other', 'deceased']);
 const REASONS = { 1: 'Low pay', 2: 'Unsatisfactory working conditions', 3: 'Professional satisfaction elsewhere', 4: 'Lack of promotion',
   5: 'Lack of training', 6: 'Personal problems', 7: 'Health problems', 8: 'Commuting problems',
@@ -1624,7 +1655,7 @@ function build(S) {
 
   // ---- payroll people (§4.1)
   const pp = new Map(), codeIdx = new Map();
-  const months = { AS: new Set(), BX: new Set() };
+  const months = { AS: new Set(), BX: new Set(), CY: new Set() };
   const files = Object.values(S.payroll).sort((a, b) => a.month - b.month || a.company.localeCompare(b.company));
   for (const f of files) {
     months[f.company].add(f.month);
@@ -1632,7 +1663,7 @@ function build(S) {
       const key = r.aka ? 'A:' + r.aka : 'C:' + f.company + ':' + r.codeKey;
       let p = pp.get(key);
       if (!p) pp.set(key, p = { key, aka: r.aka, rows: [], codeSeen: {}, codeKeys: {}, surnames: [], firsts: [], rates: [] });
-      p.rows.push({ co: f.company, m: f.month, dept: r.dept, h: r.hours, c: r.cost, rt: r.rate });
+      p.rows.push({ co: f.company, m: f.month, dept: r.dept, h: r.hours, c: r.cost, rt: r.rate, xe: EXTRA_CHECK.has(f.company) && f.payCheck ? extraPay(r) : 0 });
       const cs = p.codeSeen[f.company] || (p.codeSeen[f.company] = {});
       if (r.code) cs[r.code] = (cs[r.code] || 0) + 1;
       if (r.codeKey) { (p.codeKeys[f.company] || (p.codeKeys[f.company] = new Set())).add(r.codeKey); const ck = f.company + ':' + r.codeKey; if (!codeIdx.has(ck)) codeIdx.set(ck, p); }
@@ -1703,15 +1734,15 @@ function build(S) {
     delete p._p;
   });
 
-  const union = [...new Set([...months.AS, ...months.BX])].sort((a, b) => a - b);
+  const union = [...new Set([...months.AS, ...months.BX, ...months.CY])].sort((a, b) => a - b);
   const depts = {};
   for (const p of people) for (const r of p.rows) (depts[r.co] || (depts[r.co] = new Set())).add(r.dept);
   const payrollPeople = people.filter(p => p.onPayroll);
 
   return {
     asOf, year, W0, people, hasHR: !!H,
-    period: { Both: union, AS: [...months.AS].sort((a, b) => a - b), BX: [...months.BX].sort((a, b) => a - b) },
-    depts: { AS: [...(depts.AS || [])].sort(), BX: [...(depts.BX || [])].sort(), Both: [...new Set([...(depts.AS || []), ...(depts.BX || [])])].sort() },
+    period: { Both: union, AS: [...months.AS].sort((a, b) => a - b), BX: [...months.BX].sort((a, b) => a - b), CY: [...months.CY].sort((a, b) => a - b) },
+    depts: { AS: [...(depts.AS || [])].sort(), BX: [...(depts.BX || [])].sort(), CY: [...(depts.CY || [])].sort(), Both: [...new Set([...(depts.AS || []), ...(depts.BX || []), ...(depts.CY || [])])].sort() },
     // stats used by the Files panel (and later In & Out / Manpower)
     payrollCount: payrollPeople.length,
     both: payrollPeople.filter(p => p.companies.length > 1).length,
@@ -1722,7 +1753,7 @@ function build(S) {
   };
 }
 
-root.Model = { build, employedAt, postingAt, REASONS, KIND_LABEL, STATUS_LABEL, LEFT_KINDS, DIV_CO };
+root.Model = { build, employedAt, postingAt, REASONS, KIND_LABEL, STATUS_LABEL, LEFT_KINDS, DIV_CO, EXTRA_CHECK, MONTHLY_RATE, EXTRA_MIN, EXTRA_SHARE };
 if (typeof module !== 'undefined') module.exports = root.Model;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1998,7 +2029,7 @@ function clearAll() {
 
 /* ---------- derived facts about the loaded files ---------- */
 function coverage() {
-  const cells = { AS: {}, BX: {} };
+  const cells = { AS: {}, BX: {}, CY: {} };
   for (const k in S.payroll) {
     const p = S.payroll[k];
     const diff = p.totalsHours == null ? null : p.parsedHours - p.totalsHours;
@@ -2015,15 +2046,15 @@ function warnings() {
   const { cells, lo, hi } = coverage();
   const M = C.MONTHS;
   if (lo) for (let m = lo; m <= hi; m++) {
-    const a = cells.AS[m], b = cells.BX[m];
-    if (!a && !b) out.push(['bad', 'No payroll for ' + M[m - 1] + ' from either company, but there are files either side of it. Totals and averages will count it as an empty month.']);
-    else if (a && !b) out.push(['warn', M[m - 1] + ' has an AS file but no BX file.']);
-    else if (!a && b) out.push(['warn', M[m - 1] + ' has a BX file but no AS file.']);
+    const used = CO_LIST.filter(co => Object.keys(cells[co]).length), have = used.filter(co => cells[co][m]), lack = used.filter(co => !cells[co][m]);
+    if (!have.length) out.push(['bad', 'No payroll for ' + M[m - 1] + ' from any company, but there are files either side of it. Totals and averages will count it as an empty month.']);
+    else if (lack.length) out.push(['warn', M[m - 1] + ' has ' + andList(have.map(co => CO_LABEL[co])) + ' payroll but no ' + andList(lack.map(co => CO_LABEL[co])) + ' file.']);
   }
   for (const k in S.payroll) {
     const p = S.payroll[k], f = S.files.find(x => x.id === p.fileId), label = f ? f.name : k;
     if (p.totalsHours == null) out.push(['warn', label + ' has no Totals row, so its hours could not be checked.']);
     else if (Math.abs(p.parsedHours - p.totalsHours) >= 0.01) out.push(['warn', label + ': the employee rows add up to ' + fmtH(p.parsedHours) + ' hours but the Totals row says ' + fmtH(p.totalsHours) + ' (' + (p.parsedHours > p.totalsHours ? '+' : '') + fmtH(p.parsedHours - p.totalsHours) + '). A row may have been added or removed after the totals were worked out.']);
+    if (M_.EXTRA_CHECK.has(p.company) && !p.payCheck) out.push(['bad', label + ' has neither Μικτ. αποδ. nor ΓΕΣΥ & Λοιπά εργοδ., so pay can’t be checked against hours. Anyone paid as extra in it will look like they worked fewer hours.']);
     const miss = p.missing.filter(x => ['aka', 'dept', 'rate', 'cost', 'surname', 'name'].includes(x));
     if (miss.includes('aka')) out.push(['warn', label + ' has no Α.Κ.Α. column. People in it can\'t be linked to their other company or to the HR workbook by Α.Κ.Α.']);
     const other = miss.filter(x => x !== 'aka');
@@ -2116,7 +2147,7 @@ function boardHTML(prev) {
     <div class="board-head"><h3>Coverage for ${S.year}</h3><span class="muted small">${loaded ? plural(loaded, 'payroll file') : 'Nothing loaded yet'}</span></div>
     <div class="cov" role="group" aria-label="Payroll files by month">
       <div></div>${mh}
-      ${row('AS')}${row('BX')}
+      ${row('AS')}${row('BX')}${Object.keys(cells.CY).length ? row('CY') : ''}
     </div>
     <div class="slots">
       <div class="slot ${S.hr ? 'ok' : 'req'}"><b>Hirings & departures</b><span>${S.hr ? esc(hrF ? hrF.name : 'loaded') : 'Needed for status and the HR views'}</span></div>
@@ -2169,6 +2200,21 @@ const exportDay = d => d == null ? '' : S.anon ? C.dayISO(d).slice(0, 7) : C.day
 const exportAge = a => a == null || a === '' ? '' : S.anon ? ((AGE_BANDS.find(b => a >= b[1] && a < b[2]) || [''])[0]) : a;
 const shareCount = n => S.anon && n > 0 && n < SMALL_N ? '<' + SMALL_N : n;
 const PRIVACY_LINK = '<button class="linkish" data-view="privacy">Privacy & changes</button>';
+
+/* ---------- companies (24 November 2026): AS, BX and Cyprus (CY) ------------
+   Cyprus payroll files are read like the AS and BX ones (CY01 … CY12). Months
+   where someone was paid beyond their recorded hours (row.xe, see model.js)
+   keep their hours as recorded, but are left out of every average and every
+   comparison of hours: summarise, Overview hours per person, Overtime, Reports. */
+const CO_LIST = ['AS', 'BX', 'CY'];
+const CO_LABEL = { AS: 'AS', BX: 'BX', CY: 'Cyprus' };
+const CO_COLOR = { AS: 'var(--as)', BX: 'var(--bx)', CY: 'var(--cy)' };
+const coLoaded = () => { const md = MD(); return md ? CO_LIST.filter(co => md.period[co] && md.period[co].length) : ['AS', 'BX']; };
+const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+const coScopeTxt = co => co === 'Both' ? andList(coLoaded().map(c => CO_LABEL[c])) : CO_LABEL[co] || co;
+const coLegend = cos => cos.map(c => `<span><i style="background:${CO_COLOR[c]}"></i>${CO_LABEL[c]}</span>`).join('');
+const isMonthly = v => v >= M_.MONTHLY_RATE;   // a RATE this high is a monthly wage, not an hourly rate
+const XP_TIP = 'Paid beyond the recorded hours, so this month is left out of averages and comparisons';
 const fmtD = dn => { if (dn == null) return '–'; const [y, m, d] = C.dayParts(dn); return d + ' ' + C.MON[m - 1] + ' ' + y; };
 const fmtDur = days => {
   if (days == null) return '–';
@@ -2185,7 +2231,7 @@ const S_LABEL = s => M_.STATUS_LABEL[s] || s;
 const COLORS = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)'];
 
 function chips(p) {
-  return p.codeList.map(c => `<span class="code ${c.co === 'AS' ? 'as' : c.co === 'BX' ? 'bx' : 'hr'}">${esc(c.co)} ${esc(c.code)}</span>`).join('');
+  return p.codeList.map(c => `<span class="code ${CO_LABEL[c.co] ? c.co.toLowerCase() : 'hr'}">${esc(c.co)} ${esc(c.code)}</span>`).join('');
 }
 function personCell(p, extra = '') {
   return `<button class="person" data-person="${p.id}"><span class="pn">${esc(p.name || '(no name)')}</span><span class="pc">${chips(p)}${extra}</span></button>`;
@@ -2206,7 +2252,7 @@ function statusMatch(p, s) {
   if (s === 'otherdec') return p.status === 'other' || p.status === 'deceased';
   return p.status === s;
 }
-function period() { return MD().period[S.f.co]; }
+function period() { const md = MD(); if (!md.period[S.f.co]) S.f.co = 'Both'; return md.period[S.f.co]; }
 function focusMonth() {
   const per = MD().period.Both;
   if (!per.length) return 0;
@@ -2224,20 +2270,28 @@ function matchesQuery(p, q) {
 }
 // Hours of one person inside a company and department scope
 function calc(p, co, dept) {
-  const m = new Array(13).fill(0), c = new Array(13).fill(0), by = { AS: new Array(13).fill(0), BX: new Array(13).fill(0) };
+  const m = new Array(13).fill(0), c = new Array(13).fill(0), by = { AS: new Array(13).fill(0), BX: new Array(13).fill(0), CY: new Array(13).fill(0) };
+  const xe = new Array(13).fill(0), xf = new Array(13).fill(false);   // pay beyond the recorded hours, by month
   let any = false;
   for (const r of p.rows) {
     if (co !== 'Both' && r.co !== co) continue;
     if (dept && r.dept !== dept) continue;
     m[r.m] += r.h; c[r.m] += r.c; by[r.co][r.m] += r.h; any = true;
+    if (r.xe) { xe[r.m] += r.xe; xf[r.m] = true; }
   }
-  return { m, c, by, any };
+  return { m, c, by, xe, xf, any };
 }
+// Totals keep every hour recorded; the average and the busiest month leave out months paid beyond their hours
 function summarise(x, per, basis) {
-  let total = 0, cost = 0, worked = 0, best = 0, bestM = 0;
-  for (const k of per) { total += x.m[k]; cost += x.c[k]; if (x.m[k] > 0) worked++; if (x.m[k] > best) { best = x.m[k]; bestM = k; } }
-  const avg = basis === 'all' ? (per.length ? total / per.length : 0) : (worked ? total / worked : 0);
-  return { total, cost, worked, avg, best, bestM };
+  let total = 0, cost = 0, worked = 0, best = 0, bestM = 0, okH = 0, okWorked = 0, xpM = 0, extra = 0;
+  for (const k of per) {
+    total += x.m[k]; cost += x.c[k]; if (x.m[k] > 0) worked++;
+    if (x.xf && x.xf[k]) { xpM++; extra += x.xe[k]; continue; }
+    okH += x.m[k]; if (x.m[k] > 0) okWorked++;
+    if (x.m[k] > best) { best = x.m[k]; bestM = k; }
+  }
+  const avg = basis === 'all' ? (per.length > xpM ? okH / (per.length - xpM) : 0) : (okWorked ? okH / okWorked : 0);
+  return { total, cost, worked, avg, best, bestM, xpM, extra };
 }
 let _scopeCache = null;
 function scoped(opts = {}) {
@@ -2267,7 +2321,7 @@ function filterBarHTML() {
   const n = activeFilterCount();
   const seg = (key, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button data-f="${key}" data-v="${v}" aria-pressed="${f[key] === v}">${l}</button>`).join('')}</div>`;
   return `<div class="filters-in">
-    <div class="fg"><span class="fl">Company</span>${seg('co', [['Both', 'Both'], ['AS', 'AS'], ['BX', 'BX']])}</div>
+    <div class="fg"><span class="fl">Company</span>${seg('co', [['Both', coLoaded().length > 2 ? 'All' : 'Both'], ...coLoaded().map(c => [c, CO_LABEL[c]])])}</div>
     <div class="fg"><label class="fl" for="f-focus">Month in focus</label><select id="f-focus" data-f="focus">${per.map(m => `<option value="${m}"${m === fm ? ' selected' : ''}>${C.MONTHS[m - 1]}</option>`).join('')}</select></div>
     <div class="fg"><label class="fl" for="f-dept">Department</label><select id="f-dept" data-f="dept"><option value="">All departments</option>${depts.map(d => `<option${d === f.dept ? ' selected' : ''}>${esc(d)}</option>`).join('')}</select></div>
     ${md.hasHR ? `<div class="fg"><label class="fl" for="f-status">Status</label><select id="f-status" data-f="status">${STATUS_OPTS.map(([v, l]) => `<option value="${v}"${v === f.status ? ' selected' : ''}>${l}</option>`).join('')}</select></div>` : ''}
@@ -2377,10 +2431,7 @@ function hbars(items, max) {
     ${it.sub ? `<div class="hb-sub">${it.sub}</div>` : ''}</div>`).join('')}</div>`;
 }
 function companySeries(by, co) {
-  const s = [];
-  if (co !== 'BX') s.push({ label: 'AS', color: 'var(--as)', values: by.AS });
-  if (co !== 'AS') s.push({ label: 'BX', color: 'var(--bx)', values: by.BX });
-  return s;
+  return coLoaded().filter(c => co === 'Both' || co === c).map(c => ({ label: CO_LABEL[c], color: CO_COLOR[c], values: by[c] }));
 }
 // Overview > Busiest departments: split by station. Anything not listed for
 // LCA falls under PFO.
@@ -2406,12 +2457,19 @@ function renderOverview() {
   if (!md.period.Both.length) return noPayroll();
   const v = scoped(), per = v.per, fm = v.fm;
   if (!v.list.length) return head('Overview', '') + nobody();
-  const mT = new Array(13).fill(0), mC = new Array(13).fill(0), mP = new Array(13).fill(0), by = { AS: new Array(13).fill(0), BX: new Array(13).fill(0) };
-  for (const r of v.list) for (const k of per) { mT[k] += r.x.m[k]; mC[k] += r.x.c[k]; if (r.x.m[k] > 0) mP[k]++; by.AS[k] += r.x.by.AS[k]; by.BX[k] += r.x.by.BX[k]; }
+  const mT = new Array(13).fill(0), mC = new Array(13).fill(0), mP = new Array(13).fill(0), by = { AS: new Array(13).fill(0), BX: new Array(13).fill(0), CY: new Array(13).fill(0) };
+  // hours per person counts only months whose pay the hours explain (okT, okP); totals keep every hour recorded
+  const okT = new Array(13).fill(0), okP = new Array(13).fill(0), xpP = new Array(13).fill(0), xpE = new Array(13).fill(0);
+  for (const r of v.list) for (const k of per) {
+    mT[k] += r.x.m[k]; mC[k] += r.x.c[k]; if (r.x.m[k] > 0) mP[k]++;
+    for (const co of CO_LIST) by[co][k] += r.x.by[co][k];
+    if (r.x.xf[k]) { xpP[k]++; xpE[k] += r.x.xe[k]; } else if (r.x.m[k] > 0) { okT[k] += r.x.m[k]; okP[k]++; }
+  }
   const n = per.length;
   const avg = a => per.reduce((s, k) => s + a[k], 0) / n;
   const aT = avg(mT), aC = avg(mC), aP = avg(mP);
-  const hppOf = k => mP[k] ? mT[k] / mP[k] : 0;
+  const hppOf = k => okP[k] ? okT[k] / okP[k] : 0;
+  const xpN = per.reduce((s, k) => s + xpP[k], 0), xpPeople = v.list.filter(r => per.some(k => r.x.xf[k])).length, xpSum = per.reduce((s, k) => s + xpE[k], 0);
   const hpp = hppOf(fm), aHpp = per.reduce((s, k) => s + hppOf(k), 0) / n;
   const tT = per.reduce((s, k) => s + mT[k], 0), tC = per.reduce((s, k) => s + mC[k], 0);
   const paid = v.list.filter(r => per.some(k => r.x.m[k] > 0)).length;
@@ -2421,7 +2479,7 @@ function renderOverview() {
     return `<div class="kpi"><div class="kpi-l">${label}</div><div class="kpi-v">${val}</div>
       <div class="kpi-c"><span class="delta ${d > 0.05 ? 'pos' : d < -0.05 ? 'neg' : ''}">${fmtPct(d)}</span> on the average month, ${avgTxt}</div>${series ? kpiBars(series, per, fm) : ''}</div>`;
   };
-  const groupDesc = [S.f.co === 'Both' ? 'AS and BX' : S.f.co, S.f.dept, S.f.status && md.hasHR ? STATUS_OPTS.find(o => o[0] === S.f.status)[1].toLowerCase() : '', S.f.q ? 'matching “' + S.f.q + '”' : ''].filter(Boolean).join(', ');
+  const groupDesc = [coScopeTxt(S.f.co), S.f.dept, S.f.status && md.hasHR ? STATUS_OPTS.find(o => o[0] === S.f.status)[1].toLowerCase() : '', S.f.q ? 'matching “' + S.f.q + '”' : ''].filter(Boolean).join(', ');
   const monthRows = per.map(k => `<tr${k === fm ? ' class="ov-fm"' : ''}><td>${C.MONTHS[k - 1]}</td><td class="num"><b>${fmtH(mT[k])}</b></td><td class="num">${fmt(mP[k])}</td><td class="num">${mP[k] ? fmt(hppOf(k), 1) : '–'}</td><td class="num">€${fmt(mC[k])}</td></tr>`).join('');
 
   return head('Overview', `${plural(v.list.length, 'person', 'people')} (${esc(groupDesc)}), ${esc(monthRange(per))} ${md.year}. ${fmtH(tT)} hours in all.`) + `
@@ -2432,7 +2490,7 @@ function renderOverview() {
       ${tile('Cost in ' + fName, '€' + fmt(mC[fm]), [mC[fm], aC], '€' + fmt(aC), mC)}
     </div>
     <div class="ov-grid ov-main">
-      <div class="panel"><div class="panel-h"><h3>Hours per month</h3><div class="legend-i">${S.f.co === 'Both' ? '<span><i style="background:var(--as)"></i>AS</span><span><i style="background:var(--bx)"></i>BX</span>' : ''}<span><i class="avg-sw"></i>Average month ${fmtH(Math.round(aT))}</span></div></div>
+      <div class="panel"><div class="panel-h"><h3>Hours per month</h3><div class="legend-i">${S.f.co === 'Both' && coLoaded().length > 1 ? coLegend(coLoaded()) : ''}<span><i class="avg-sw"></i>Average month ${fmtH(Math.round(aT))}</span></div></div>
         <div class="panel-b">${chartBox('ov-month', 330, monthBars({ per, series: companySeries(by, S.f.co), focus: fm, avg: aT, avgInLegend: true, topLabels: Object.fromEntries(per.map(k => [k, fmtK(mT[k])])) }))}</div></div>
       <div class="panel"><div class="panel-h"><h3>By month</h3></div><div class="tbl-wrap"><table class="t ov-month">
         <thead><tr><th>Month</th><th class="num">Hours</th><th class="num">People paid</th><th class="num">Hours per person</th><th class="num">Cost</th></tr></thead>
@@ -2440,8 +2498,9 @@ function renderOverview() {
         <tfoot><tr class="sep"><td><b>Average</b></td><td class="num"><b>${fmtH(Math.round(aT))}</b></td><td class="num"><b>${fmt(aP, 1)}</b></td><td class="num"><b>${fmt(aHpp, 1)}</b></td><td class="num"><b>€${fmt(aC)}</b></td></tr>
           <tr><td><b>Total</b></td><td class="num"><b>${fmtH(tT)}</b></td><td class="num"><b>${fmt(paid)}</b></td><td class="num">–</td><td class="num"><b>€${fmt(tC)}</b></td></tr></tfoot>
       </table></div>
-        <p class="small muted panel-foot">${esc(fName)}, the month in focus, is highlighted. In the total, people paid counts each person once.</p></div>
+        <p class="small muted panel-foot">${esc(fName)}, the month in focus, is highlighted. In the total, people paid counts each person once.${xpN ? ` Hours per person leaves out ${plural(xpN, 'payslip')} paid beyond the recorded hours.` : ''}</p></div>
     </div>
+    ${xpN ? `<div class="note info">${ICON.info}<span><b>Pay beyond recorded hours.</b> ${plural(xpPeople, 'person was', 'people were')} paid more than their recorded hours explain, on ${plural(xpN, 'payslip')} (€${fmt(xpSum)} in all) in the Cyprus payroll: pay as extra rather than by the hour. Their hours are counted in Hours as recorded, and their pay in Cost, but those payslips are left out of hours per person and every average, so they don’t pull the figures down.</span></div>` : ''}
     ${hrOnlyNote(v)}`;
 }
 function head(title, sub, right = '') {
@@ -2476,18 +2535,21 @@ function personCard(p) {
   const s = summarise(x, per, S.f.basis);
   const h = p.hr;
   const inCmp = S.cmp.people.includes(p.id);
-  const rate = p.rate ? (Math.abs(p.rate.max - p.rate.min) < 0.005 ? '€' + fmt(p.rate.mean, 2) + ' / h' : '€' + fmt(p.rate.min, 2) + '–' + fmt(p.rate.max, 2) + ' / h') : h && h.rate ? '€' + fmt(h.rate, 2) + ' / h (HR)' : '–';
-  const basisTxt = S.f.basis === 'all' ? 'over all ' + per.length + ' months' : 'over ' + plural(s.worked, 'month') + ' worked';
+  const per1 = v => isMonthly(v) ? ' a month' : ' / h', dp = v => isMonthly(v) ? 0 : 2;
+  const rate = p.rate ? (Math.abs(p.rate.max - p.rate.min) < 0.005 ? '€' + fmt(p.rate.mean, dp(p.rate.mean)) + per1(p.rate.mean) : '€' + fmt(p.rate.min, dp(p.rate.min)) + '–' + fmt(p.rate.max, dp(p.rate.max)) + per1(p.rate.max)) : h && h.rate ? '€' + fmt(h.rate, 2) + ' / h (HR)' : '–';
+  const xpMonths = per.filter(k => x.xf[k]);
+  const xpNote = xpMonths.length ? `<p class="small muted">Paid beyond their recorded hours in ${esc(andList(xpMonths.map(k => C.MONTHS[k - 1])))} (€${fmt(xpMonths.reduce((t, k) => t + x.xe[k], 0))}). Those months count in the total but not in the average or the busiest month.</p>` : '';
+  const basisTxt = (S.f.basis === 'all' ? 'over all ' + per.length + ' months' : 'over ' + plural(s.worked, 'month') + ' worked') + (s.xpM ? ', less ' + plural(s.xpM, 'month') + ' paid beyond hours' : '');
   const d = pct(x.m[fm], s.avg);
   const hasHours = s.total > 0;
-  const scopeNote = S.f.co !== 'Both' && p.companies.length > 1 ? `<p class="small muted">Showing ${S.f.co} hours only. Set Company to Both to see all of them.</p>` : '';
+  const scopeNote = (S.f.co !== 'Both' && p.companies.length > 1 ? `<p class="small muted">Showing ${CO_LABEL[S.f.co]} hours only. Set Company to ${coLoaded().length > 2 ? 'All' : 'Both'} to see all of them.</p>` : '') + xpNote;
 
   const split = p.companies.length > 1 ? (() => {
-    const a = per.reduce((t, k) => t + x.by.AS[k], 0), b = per.reduce((t, k) => t + x.by.BX[k], 0), all = a + b || 1;
-    const all2 = calc(p, 'Both', ''), A = per.reduce((t, k) => t + all2.by.AS[k], 0), B = per.reduce((t, k) => t + all2.by.BX[k], 0), T2 = A + B || 1;
-    return `<div class="panel ic-split"><div class="panel-h"><h3>Paid by both companies</h3></div><div class="panel-b">
-      <div class="split"><i style="width:${(100 * A / T2).toFixed(1)}%;background:var(--as)"></i><i style="width:${(100 * B / T2).toFixed(1)}%;background:var(--bx)"></i></div>
-      <dl class="facts"><dt><span class="code as">AS ${esc(p.codes.AS)}</span></dt><dd>${fmtH(A)} h (${(100 * A / T2).toFixed(0)}%)</dd><dt><span class="code bx">BX ${esc(p.codes.BX)}</span></dt><dd>${fmtH(B)} h (${(100 * B / T2).toFixed(0)}%)</dd></dl>
+    const all2 = calc(p, 'Both', ''), cos = p.companies.filter(c => CO_LABEL[c]);
+    const H = Object.fromEntries(cos.map(c => [c, per.reduce((t, k) => t + all2.by[c][k], 0)])), T2 = cos.reduce((t, c) => t + H[c], 0) || 1;
+    return `<div class="panel ic-split"><div class="panel-h"><h3>Paid by ${cos.length === 2 ? 'both companies' : plural(cos.length, 'company', 'companies')}</h3></div><div class="panel-b">
+      <div class="split">${cos.map(c => `<i style="width:${(100 * H[c] / T2).toFixed(1)}%;background:${CO_COLOR[c]}"></i>`).join('')}</div>
+      <dl class="facts">${cos.map(c => `<dt><span class="code ${c.toLowerCase()}">${c} ${esc(p.codes[c])}</span></dt><dd>${fmtH(H[c])} h (${(100 * H[c] / T2).toFixed(0)}%)</dd>`).join('')}</dl>
     </div></div>`;
   })() : '';
 
@@ -2505,9 +2567,9 @@ function personCard(p) {
       <div class="kpi"><div class="kpi-l">Total</div><div class="kpi-v">${fmtH(s.total)} h</div><div class="kpi-c">${esc(monthRange(per))}, €${fmt(s.cost)} cost</div></div>
       <div class="kpi"><div class="kpi-l">Busiest month</div><div class="kpi-v">${esc(C.MONTHS[s.bestM - 1] || '–')}</div><div class="kpi-c">${fmtH(s.best)} h</div></div>
     </div>
-    <div class="panel ic-chart"><div class="panel-h"><h3>Hours per month</h3>${p.companies.length > 1 && S.f.co === 'Both' ? '<div class="legend-i"><span><i style="background:var(--as)"></i>AS</span><span><i style="background:var(--bx)"></i>BX</span></div>' : ''}</div>
+    <div class="panel ic-chart"><div class="panel-h"><h3>Hours per month</h3>${p.companies.length > 1 && S.f.co === 'Both' ? `<div class="legend-i">${coLegend(p.companies.filter(c => CO_LABEL[c]))}</div>` : ''}</div>
       <div class="panel-b">${chartBox('ind-' + p.id, 220, monthBars({ per, series: companySeries(x.by, S.f.co), focus: fm, avg: s.avg, avgLabel: 'Their average' }))}${scopeNote}</div></div>`
-    : `<div class="note info">${ICON.info}<span>No payroll hours for ${S.f.co === 'Both' ? 'this person' : 'this person in ' + S.f.co} in the loaded files.</span></div>`}
+    : `<div class="note info">${ICON.info}<span>No payroll hours for ${S.f.co === 'Both' ? 'this person' : 'this person in ' + CO_LABEL[S.f.co]} in the loaded files.</span></div>`}
     ${otPersonPanel(p)}
     ${split}
     ${hrPanel(p)}`;
@@ -2620,9 +2682,9 @@ function empColumns() {
     { k: 'name', l: 'Employee', v: r => r.p.name, html: r => personCell(r.p), csv: r => r.p.name },
     { k: 'codes', l: 'Codes', csvOnly: true, v: r => r.p.codeList.map(c => c.co + ' ' + c.code).join(' / ') },
     { k: 'dept', l: 'Department', v: r => r.p.dept },
-    { k: 'paid', l: 'Paid by', v: r => r.p.companies.length > 1 ? 'Both' : r.p.companies[0] },
+    { k: 'paid', l: 'Paid by', v: r => andList(r.p.companies.map(c => CO_LABEL[c] || c)) },
     { k: 'focus', l: C.MON[fm - 1], num: true, v: r => r.focus, f: fmtH },
-    { k: 'avg', l: 'Average', num: true, v: r => r.avg, f: v => fmt(v, 1) },
+    { k: 'avg', l: 'Average', num: true, v: r => r.avg, html: r => r.xpM ? `<span title="Leaves out ${plural(r.xpM, 'month')} paid beyond the recorded hours">${fmt(r.avg, 1)}<sup class="xp-m">*</sup></span>` : fmt(r.avg, 1) },
     { k: 'total', l: 'Total', num: true, v: r => r.total, f: v => '<b>' + fmtH(v) + '</b>', fcsv: v => v },
     { k: 'worked', l: 'Months worked', num: true, v: r => r.worked, f: v => v + ' of ' + per.length },
     { k: 'trend', l: 'Trend', nosort: true, html: r => spark(r.x.m, per), noCsv: true },
@@ -2634,8 +2696,10 @@ function empColumns() {
     { k: 'last', l: 'Last day', v: r => lastDay(r.p), f: fmtD, fcsv: exportDay },
     { k: 'reason', l: 'Reason', anonDrop: true, v: r => reason(r.p), html: r => `<span class="clip" title="${esc(reason(r.p))}">${esc(reason(r.p)) || '–'}</span>` },
   );
-  per.forEach(m => cols.push({ k: 'm' + m, l: C.MON[m - 1], num: true, v: r => r.x.m[m], f: v => v ? fmtH(v) : '<span class="muted">–</span>', fcsv: v => v, month: m }));
-  cols.push({ k: 'rate', l: 'Rate', num: true, v: r => r.p.rate ? r.p.rate.mean : null, f: v => v == null ? '–' : '€' + fmt(v, 2), fcsv: v => v == null ? '' : v.toFixed(2) });
+  per.forEach(m => cols.push({ k: 'm' + m, l: C.MON[m - 1], num: true, v: r => r.x.m[m], fcsv: v => v, month: m,
+    html: r => r.x.xf[m] ? `<span class="xp-c" title="${esc(XP_TIP)}: €${fmt(r.x.xe[m])} more than the hours explain">${r.x.m[m] ? fmtH(r.x.m[m]) : '0'}<sup class="xp-m">*</sup></span>` : r.x.m[m] ? fmtH(r.x.m[m]) : '<span class="muted">–</span>' }));
+  if (coLoaded().includes('CY')) cols.push({ k: 'extra', l: 'Pay beyond hours', csvL: 'Pay beyond recorded hours (€)', num: true, v: r => r.extra, f: v => v ? '€' + fmt(v) : '<span class="muted">–</span>', fcsv: v => v ? +v.toFixed(2) : '' });
+  cols.push({ k: 'rate', l: 'Rate', num: true, v: r => r.p.rate ? r.p.rate.mean : null, f: v => v == null ? '–' : isMonthly(v) ? '€' + fmt(v, 0) + '/month' : '€' + fmt(v, 2), fcsv: v => v == null ? '' : v.toFixed(2) });
   return cols;
 }
 function sortedEmployees(cols) {
@@ -2874,7 +2938,7 @@ function renderInOut() {
         <p class="small muted" style="margin-top:10px">Time actually employed, added up spell by spell; months away between spells don’t count.</p></div></div>
       <div class="panel"><div class="panel-h"><h3>Age when they left</h3></div><div class="panel-b">${countBars(age.out)}${age.unknown ? `<p class="small muted" style="margin-top:10px">${plural(age.unknown, 'departure')} with no date of birth.</p>` : ''}</div></div>
     </div>
-    <div class="${fut.length ? 'lv-pair' : ''}"><div class="panel"><div class="panel-h"><h3>Hours worked by the people who left</h3><span class="small muted">${S.f.co === 'Both' ? 'AS and BX' : S.f.co} hours; the label is their share of that month’s hours</span></div>
+    <div class="${fut.length ? 'lv-pair' : ''}"><div class="panel"><div class="panel-h"><h3>Hours worked by the people who left</h3><span class="small muted">${esc(coScopeTxt(S.f.co))} hours; the label is their share of that month’s hours</span></div>
       <div class="panel-b">${per.length && leftPeople.length ? chartBox('io-lh', 230, monthBars({ per, series: [{ label: 'Leavers', color: 'var(--bad)', values: lh }], focus: focusMonth(), topLabels: share, tipExtra: shareTip, label: 'Hours worked by leavers' })) : '<p class="muted small">No payroll hours for these people in the loaded files.</p>'}
       ${leftPeople.length ? `<p class="small muted">${plural(leftPeople.length, 'person', 'people')}. ${leftPeople.filter(p => !p.onPayroll).length ? leftPeople.filter(p => !p.onPayroll).length + ' of them had no hours in these payroll files.' : ''}</p>` : ''}</div></div>
     ${fut.length ? `<div class="panel"><div class="panel-h"><h3>Leaving after today</h3><span class="small muted">Filed in advance; not counted above until the day arrives</span></div>
@@ -3419,11 +3483,11 @@ function csvLeavers() {
 const LV_TABS = [['list', 'By month'], ['trends', 'Trends']];
 // LCA / PFO choice, shared by both Leavers views
 const LV_ST = [['', 'LCA and PFO'], ['LCA', 'LCA'], ['PFO', 'PFO']];
-const lvStSeg = () => `<div class="fg"><span class="fl">Station</span><div class="seg" role="group" aria-label="Station">${LV_ST.map(([v, l]) => `<button data-act="lv-st" data-v="${v}" aria-pressed="${(S.lvSt || '') === v}">${l}</button>`).join('')}</div></div>`;
-const LV_ST_NOTE = 'LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, from the last month a person was paid; PFO is every other department. People with no payroll rows are placed by their HR station.';
+const lvStSeg = () => `<div class="fg"><span class="fl">Station</span><div class="seg" role="group" aria-label="Station">${stOptions().map(([v, l]) => `<button data-act="lv-st" data-v="${v}" aria-pressed="${(S.lvSt || '') === v}">${l}</button>`).join('')}</div></div>`;
+const LV_ST_NOTE = 'LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, from the last month a person was paid; PFO is every other department. People with no payroll rows are placed by their HR station. Cyprus is anyone paid through the Cyprus payroll or in the HR division CYPRUS, kept apart from PFO.';
 const lvTySeg = () => `<div class="fg"><span class="fl">Staff</span><div class="seg" role="group" aria-label="Staff type">${[['', 'Permanent and seasonal'], ...RP_TYPES].map(([v, l]) => `<button data-act="lv-ty" data-v="${v}" aria-pressed="${(S.lvTy || '') === v}">${l}</button>`).join('')}</div></div>`;
 const LV_TY_NOTE = 'Seasonal staff are those whose employment ended with ΛΗΞΗ ΣΥΜΒΑΣΗΣ (contract ended); everyone else is counted as permanent.';
-const lvStLabel = () => (S.lvTy ? ' (' + rpTypeLabel(S.lvTy).toLowerCase() + ' staff)' : '') + (S.lvSt ? ' under ' + S.lvSt : '');
+const lvStLabel = () => (S.lvTy ? ' (' + rpTypeLabel(S.lvTy).toLowerCase() + ' staff)' : '') + (S.lvSt ? ' under ' + (ST_LABEL[S.lvSt] || S.lvSt) : '');
 const lvTabs = () => `<div class="lv-tabs"><div class="seg" role="group" aria-label="Leavers view">${LV_TABS.map(([k, l]) => `<button data-act="lv-tab" data-v="${k}" aria-pressed="${(S.lvTab || 'list') === k}">${l}</button>`).join('')}</div></div>`;
 
 function lvTrendData(div, st, ty) {
@@ -3447,7 +3511,7 @@ function lvTrendData(div, st, ty) {
       if (!M_.employedAt(h, d)) return;
       const po = M_.postingAt(h, d), dv = po.division || h.division;
       if (div && dv !== div) return;
-      if (st && (paid ? paid.st : hrStationLP(po.station || h.station || '')) !== st) return;
+      if (st && (dv === 'CYPRUS' ? 'CY' : paid ? paid.st : hrStationLP(po.station || h.station || '')) !== st) return;
       hcAll[k]++;
       const sn = po.station || '(no station)';
       (hcSt[sn] || (hcSt[sn] = new Array(N + 1).fill(0)))[k]++;
@@ -4009,8 +4073,8 @@ function otModel() {
   const res = new Map();
   for (const [pid, hits] of found) {
     const p = md.people[pid];
-    const hoursBy = new Array(13).fill(0), coH = { AS: 0, BX: 0 };
-    for (const row of p.rows) { hoursBy[row.m] += row.h; coH[row.co] += row.h; }
+    const hoursBy = new Array(13).fill(0), coH = { AS: 0, BX: 0, CY: 0 }, xpBy = new Array(13).fill(false);
+    for (const row of p.rows) { hoursBy[row.m] += row.h; coH[row.co] += row.h; if (row.xe) xpBy[row.m] = true; }
     // one shift length per person; two different ones (one per company) → the company with more hours
     const lens = [...new Set(hits.map(x => x.r.hours))];
     const pick = lens.length > 1 ? [...hits].sort((a, b) => (coH[b.co] || 0) - (coH[a.co] || 0))[0] : hits[0];
@@ -4021,6 +4085,7 @@ function otModel() {
     for (const m of per) {
       const h = hoursBy[m];
       if (!(h > 0)) { months[m] = { m, h: 0, st: 'none' }; continue; }
+      if (xpBy[m]) { months[m] = { m, h, exp: 0, st: 'skip', xp: true }; sum.skipped++; continue; }   // paid beyond these hours: not compared
       let days = wd[m];
       if (S.ot.useHR && p.hr) days = days.filter(d => M_.employedAt(p.hr, d));
       const ne = wd[m].length - days.length;
@@ -4039,7 +4104,7 @@ function otModel() {
       perShift: sum.counted ? sum.h / sum.counted / shift : 0,
     }));
   }
-  const noShift = md.people.filter(p => p.onPayroll && !res.has(p.id));
+  const noShift = md.people.filter(p => p.onPayroll && !res.has(p.id) && p.companies.some(c => c !== 'CY'));   // Cyprus staff have no standard shift
   _ot = { model: md, shifts: S.shifts, sig, res, matchedRows, crossRows, unmatchedRows, noShift, useSick, sickLinked: sickBy.size };
   return _ot;
 }
@@ -4050,7 +4115,7 @@ function otScope() {
   const rows = [], noShift = [];
   for (const r of v.list) {
     const x = o.res.get(r.p.id);
-    if (!x) { noShift.push(r.p); continue; }
+    if (!x) { if (r.p.companies.some(c => c !== 'CY')) noShift.push(r.p); continue; }
     if (S.ot.only && String(x.shift) !== S.ot.only) continue;
     rows.push(x);
   }
@@ -4085,7 +4150,7 @@ function otColumns(per, fm) {
 }
 function otCell(c, shift) {
   if (!c || c.st === 'none') return '<span class="muted">–</span>';
-  const tipTxt = c.st === 'skip' ? `${fmtH(c.h)} h paid, but no working days expected${c.ne ? ' (' + plural(c.ne, 'day') + ' outside employment)' : ''}`
+  const tipTxt = c.xp ? `${fmtH(c.h)} h recorded, but paid beyond those hours, so this month isn’t compared` : c.st === 'skip' ? `${fmtH(c.h)} h paid, but no working days expected${c.ne ? ' (' + plural(c.ne, 'day') + ' outside employment)' : ''}`
     : `${fmtH(c.h)} h worked, ${fmtH(Math.round(c.exp))} h expected: ${fmtSignH(c.diff)} h, ${fmtSh(c.shifts)} shifts of ${fmtH(shift)} h${c.ne ? '. ' + plural(c.ne, 'day') + ' outside employment' : ''}`;   // sick weekdays shape the expected hours but are never named (24 November 2026)
   if (c.st === 'skip') return `<span class="ot-c skip" data-tip="${esc(tipTxt)}">?</span>`;
   const big = Math.abs(c.shifts) >= 2 * S.ot.tol ? ' big' : '';
@@ -4156,6 +4221,7 @@ function renderOvertime() {
   if (!S.shifts) return head('Overtime', '') + emptyState('Add the standard shift list',
     'Overtime compares each person’s monthly hours with their standard shift. Add the workbook with the columns ID, CERTIFICATION and STANDARD SHIFT DURATION HOURS. ID is the payroll employee code; BX certification means the BX payroll, DCA and NON DCA mean AS.',
     `<button class="btn primary" data-act="pick">${ICON.plus}Add files</button>`);
+  if (S.f.co === 'CY') return head('Overtime', '') + emptyState('Overtime covers AS and BX', 'Cyprus staff have no standard shift, so their hours aren’t compared with one. Set Company to All, AS or BX.', '');
   const sc = otScope(), o = sc.o, per = sc.per, fm = sc.fm, t = S.ot;
   const rows = sc.rows;
   const M = otMonthly(rows, per);
@@ -4455,7 +4521,7 @@ function presetApply(p) {
 function presetDescribe(st) {
   const v = VIEWS.find(x => x.id === st.view), f = st.f || {};
   const bits = [v ? v.label : st.view];
-  if (f.co && f.co !== 'Both') bits.push(f.co);
+  if (f.co && f.co !== 'Both') bits.push(CO_LABEL[f.co] || f.co);
   if (f.dept) bits.push(f.dept);
   if (f.status) bits.push((STATUS_OPTS.find(o => o[0] === f.status) || [0, f.status])[1]);
   if (st.view === 'overtime' && st.ot) { if (st.ot.only) bits.push(st.ot.only + ' h shifts'); }
@@ -4527,7 +4593,7 @@ function filtersLine(viewId) {
   const md = MD(), f = S.f, out = [];
   const v = VIEWS.find(x => x.id === viewId);
   if (v && v.filters && md && md.period.Both.length) {
-    out.push('Company ' + (f.co === 'Both' ? 'AS and BX' : f.co));
+    out.push('Company ' + coScopeTxt(f.co));
     out.push(f.dept ? 'Department ' + f.dept : 'All departments');
     if (md.hasHR && f.status) out.push('Status ' + STATUS_OPTS.find(o => o[0] === f.status)[1].toLowerCase());
     if (f.q) out.push('Search “' + f.q + '”');
@@ -4760,14 +4826,17 @@ async function buildPack() {
   // hours, from the filtered list
   const v = scoped(), per = v.per;
   if (per.length) {
+    // hours per person leaves out months paid beyond the recorded hours, as on the Overview
+    const cos = coLoaded(), hasCY = cos.includes('CY');
     const rows = per.map(k => {
-      let as = 0, bx = 0, c = 0, n = 0;
-      for (const r of v.list) { as += r.x.by.AS[k]; bx += r.x.by.BX[k]; c += r.x.c[k]; if (r.x.m[k] > 0) n++; }
-      return [C.MONTHS[k - 1], +as.toFixed(2), +bx.toFixed(2), +(as + bx).toFixed(2), n, n ? +((as + bx) / n).toFixed(1) : '', +c.toFixed(2)];
+      const h = Object.fromEntries(cos.map(co => [co, 0])); let c = 0, n = 0, okH = 0, okN = 0, xp = 0;
+      for (const r of v.list) { for (const co of cos) h[co] += r.x.by[co][k]; c += r.x.c[k]; if (r.x.m[k] > 0) n++; if (r.x.xf[k]) xp += r.x.xe[k]; else if (r.x.m[k] > 0) { okH += r.x.m[k]; okN++; } }
+      const all = cos.reduce((s, co) => s + h[co], 0);
+      return [C.MONTHS[k - 1], ...cos.map(co => +h[co].toFixed(2)), +all.toFixed(2), n, okN ? +(okH / okN).toFixed(1) : '', +c.toFixed(2), ...(hasCY ? [+xp.toFixed(2)] : [])];
     });
-    const sum = i => +rows.reduce((s, r) => s + (+r[i] || 0), 0).toFixed(2);
-    rows.push(['Total', sum(1), sum(2), sum(3), v.list.length, '', sum(6)]);
-    add('Hours by month', [['Month', 'AS hours', 'BX hours', 'Total hours', 'People paid', 'Hours per person', 'Cost (€)'], ...rows], 'Hours, people paid and cost per month');
+    const sum = i => +rows.reduce((s, r) => s + (+r[i] || 0), 0).toFixed(2), nc = cos.length;
+    rows.push(['Total', ...cos.map((_, i) => sum(1 + i)), sum(1 + nc), v.list.length, '', sum(3 + nc), ...(hasCY ? [sum(4 + nc)] : [])]);
+    add('Hours by month', [['Month', ...cos.map(co => CO_LABEL[co] + ' hours'), 'Total hours', 'People paid', 'Hours per person', 'Cost (€)', ...(hasCY ? ['Pay beyond recorded hours (€)'] : [])], ...rows], 'Hours, people paid and cost per month' + (hasCY ? '; hours per person leaves out months paid beyond the recorded hours' : ''));
     const dep = {};
     for (const r of v.list) for (const row of r.p.rows) {
       if (S.f.co !== 'Both' && row.co !== S.f.co) continue;
@@ -4806,7 +4875,7 @@ async function buildPack() {
   const about = [
     ['ICTS employee hour analysis: summary pack', ''],
     ['Year', md.year], ['Created', new Date().toLocaleString('en-GB')], ['Payroll months', monthRange(per)],
-    ['Company', S.f.co === 'Both' ? 'AS and BX' : S.f.co], ['Department', S.f.dept || 'All'],
+    ['Company', coScopeTxt(S.f.co)], ['Department', S.f.dept || 'All'],
     ['Status', md.hasHR ? (STATUS_OPTS.find(o => o[0] === S.f.status) || ['', 'All'])[1] : 'No HR workbook loaded'],
     ['Search', S.f.q ? (S.anon ? '(a search was set)' : S.f.q) : '(none)'], ['Averages over', S.f.basis === 'all' ? 'All months' : 'Months worked'],
     ['Names, codes and Α.Κ.Α.', S.anon ? 'Hidden' : 'Shown'],
@@ -4820,7 +4889,7 @@ async function buildPack() {
   about.push(['', ''], ['Sheets in this workbook', ''], ...made.map(([n, note, k]) => [n, note + ' (' + plural(k, 'row') + ')']));
   const wb = xlWorkbook();
   xlAddAbout(wb, about.map(r => r.length === 2 && made.some(m => m[0] === r[0]) ? [r[0], r[1], r[0]] : r), true);
-  const sub = (S.f.co === 'Both' ? 'AS and BX' : S.f.co) + ', ' + (S.f.dept || 'all departments') + (S.anon ? ', names hidden' : '') + '. Created ' + new Date().toLocaleDateString('en-GB') + '.';
+  const sub = coScopeTxt(S.f.co) + ', ' + (S.f.dept || 'all departments') + (S.anon ? ', names hidden' : '') + '. Created ' + new Date().toLocaleDateString('en-GB') + '.';
   sheets.forEach(sh => xlAddSheet(wb, { ...sh, subtitle: sh.subtitle + '. ' + sub, freeze: sh.name === 'Hours by month' ? 1 : 0 }));
   const name = 'icts-hour-summary-' + md.year + (S.f.co !== 'Both' ? '-' + S.f.co.toLowerCase() : '') + (S.anon ? '-names-hidden' : '') + '.xlsx';
   return { blob: await xlBuffer(wb), name, count: made.length };
@@ -4874,7 +4943,7 @@ function paidStationLP(p) {
   const rows = (p.rows || []).filter(r => r.dept && r.dept !== '(no department)');
   if (!rows.length) return null;
   const last = rows.reduce((a, b) => b.m > a.m || (b.m === a.m && b.h > a.h) ? b : a);
-  return { st: stationOf(last.dept), dept: last.dept };
+  return { st: last.co === 'CY' ? 'CY' : stationOf(last.dept), dept: last.dept };
 }
 // an HR station name, as LCA/PFO
 function hrStationLP(raw) {
@@ -4883,10 +4952,16 @@ function hrStationLP(raw) {
 }
 function leaverStation(p, ev) {
   const paid = paidStationLP(p);
-  if (paid) return { st: paid.st, dept: paid.dept, src: 'payroll' };
   const raw = (ev && ev.station) || (p.hr && p.hr.station) || '';
+  if (((ev && ev.division) || (p.hr && p.hr.division)) === 'CYPRUS') return { st: 'CY', dept: paid ? paid.dept : raw, src: paid ? 'payroll' : 'hr' };
+  if (paid) return { st: paid.st, dept: paid.dept, src: 'payroll' };
   return { st: hrStationLP(raw), dept: raw, src: 'hr' };
 }
+// Cyprus (24 November 2026): anyone last paid through the Cyprus payroll, or in the HR division CYPRUS. Separate from PFO.
+const ST_LABEL = { LCA: 'LCA', PFO: 'PFO', CY: 'Cyprus' };
+const hasCyprus = () => { const md = MD(); return !!md && (md.period.CY.length > 0 || md.people.some(p => p.hr && p.hr.division === 'CYPRUS')); };
+const rpStations = () => ['LCA', 'PFO', ...(hasCyprus() ? ['CY'] : [])];
+const stOptions = () => [['', hasCyprus() ? 'All stations' : 'LCA and PFO'], ...rpStations().map(s => [s, ST_LABEL[s]])];
 
 // Seasonal staff: anyone whose employment ended because the contract ran out (ΛΗΞΗ ΣΥΜΒΑΣΗΣ). Everyone else is permanent.
 const RP_TYPES = [['permanent', 'Permanent'], ['seasonal', 'Seasonal']];
@@ -4927,13 +5002,16 @@ function rpScope() {
       const start = spell ? spell.start : ex.hired;
       const x = calc(p, 'Both', '');
       const tot = per.reduce((s, m) => s + x.m[m], 0);
-      const asH = per.reduce((s, m) => s + x.by.AS[m], 0), bxH = per.reduce((s, m) => s + x.by.BX[m], 0);
+      const asH = per.reduce((s, m) => s + x.by.AS[m], 0), bxH = per.reduce((s, m) => s + x.by.BX[m], 0), cyH = per.reduce((s, m) => s + x.by.CY[m], 0);
       const worked = per.filter(m => x.m[m] > 0).length;
+      // average hours a month: months paid beyond their hours are left out, so they don't pull it down
+      const okM = per.filter(m => x.m[m] > 0 && !x.xf[m]), xpM = per.filter(m => x.xf[m]).length;
+      const avgH = okM.length ? okM.reduce((s, m) => s + x.m[m], 0) / okM.length : null;
       const stn = leaverStation(p, ev);
       let sickDays = null;
       if (hasSick) { sickDays = 0; const set = sick.get(p.id); if (set) for (const d of set) if (d <= ev.d && (start == null || d >= start)) sickDays++; }
       const reasons = shownReasons(ex.reasons).map(n => n + '. ' + M_.REASONS[n]);   // Health problems only as a count, on the Reasons sheet
-      rows.push({ p, ev, ex, start, end: ev.d, dur: start != null ? ev.d - start : null, x, tot, asH, bxH, worked, stn, ty: rpTypeOf(ev), sickDays, reasons });
+      rows.push({ p, ev, ex, start, end: ev.d, dur: start != null ? ev.d - start : null, x, tot, asH, bxH, cyH, worked, avgH, xpM, stn, ty: rpTypeOf(ev), sickDays, reasons });
     }
   }
   rows.sort((a, b) => a.end - b.end || a.p.name.localeCompare(b.p.name));
@@ -4944,27 +5022,27 @@ function rpStationPanel(V, st, ty) {
   const rows = V.rows.filter(r => r.stn.st === st && r.ty === ty);
   const tot = rows.reduce((s, r) => s + r.tot, 0), sk = rows.reduce((s, r) => s + (r.sickDays || 0), 0);
   const sum = rows.length ? [plural(rows.length, 'leaver'), fmtH(tot) + ' h worked', V.hasSick ? (rows.length >= SMALL_N ? plural(sk, 'sick day') + ' in total' : 'sick days shown for 5 or more leavers') : ''].filter(Boolean).join(' · ') : 'Nobody left';
-  const body = !rows.length ? `<div class="panel-b"><p class="small muted">No ${rpTypeLabel(ty).toLowerCase()} leavers under ${st} in this period.</p></div>` :
+  const body = !rows.length ? `<div class="panel-b"><p class="small muted">No ${rpTypeLabel(ty).toLowerCase()} leavers under ${ST_LABEL[st]} in this period.</p></div>` :
     `<div class="tbl-wrap"><table class="t rp-t">
       <thead><tr><th>Employee</th><th>Department</th><th>Employment period</th><th class="num">Hours worked</th><th class="num">Avg hours/month</th><th>How it ended</th><th>Reason for leaving</th><th>Category</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td>${personCell(r.p)}</td>
         <td class="small">${esc(r.stn.dept || '–')}${r.stn.src === 'hr' ? '<div class="muted">HR station</div>' : ''}</td>
         <td class="small nowrap">${r.start != null ? fmtD(r.start) : '<span class="muted">start unknown</span>'} – ${fmtD(r.end)}<div class="muted">${r.dur != null ? fmtDur(r.dur) : ''}${r.p.hr.codes.some(c => c.company === 'AS') && r.p.hr.codes.some(c => c.company === 'BX') ? (r.dur != null ? ', ' : '') + 'AS and BX' : ''}</div></td>
-        <td class="num">${r.tot ? '<b>' + fmtH(r.tot) + '</b>' : '<span class="muted">–</span>'}${r.tot ? `<div class="small muted">${[r.asH ? 'AS ' + fmtH(r.asH) : '', r.bxH ? 'BX ' + fmtH(r.bxH) : ''].filter(Boolean).join(' · ')}, ${plural(r.worked, 'month')}</div>` : ''}</td>
-        <td class="num">${r.worked ? fmtH(r.tot / r.worked) : '<span class="muted">–</span>'}</td>
+        <td class="num">${r.tot ? '<b>' + fmtH(r.tot) + '</b>' : '<span class="muted">–</span>'}${r.tot ? `<div class="small muted">${[r.asH ? 'AS ' + fmtH(r.asH) : '', r.bxH ? 'BX ' + fmtH(r.bxH) : '', r.cyH ? 'Cyprus ' + fmtH(r.cyH) : ''].filter(Boolean).join(' · ')}, ${plural(r.worked, 'month')}</div>` : ''}</td>
+        <td class="num">${r.avgH != null ? fmtH(r.avgH) : '<span class="muted">–</span>'}${r.xpM ? `<div class="small muted" title="${esc(XP_TIP)}">${plural(r.xpM, 'month')} paid beyond hours left out</div>` : ''}</td>
         <td class="small">${esc(M_.KIND_LABEL[r.ev.kind] || r.ex.logos || '–')}</td>
         <td class="small">${r.reasons.length ? r.reasons.map(esc).join('<br>') : '<span class="muted">–</span>'}${r.ex.note && !S.anon ? `<div class="muted">“${esc(r.ex.note)}”</div>` : ''}</td>
         <td class="small">${esc(r.ex.category) || '<span class="muted">–</span>'}</td>
       </tr>`).join('')}</tbody></table></div>`;
-  return `<section class="panel rp-sec"><div class="panel-h"><h3>${st} · ${rpTypeLabel(ty)} staff</h3><span class="small muted">${sum}</span></div>${body}</section>`;
+  return `<section class="panel rp-sec"><div class="panel-h"><h3>${ST_LABEL[st]} · ${rpTypeLabel(ty)} staff</h3><span class="small muted">${sum}</span></div>${body}</section>`;
 }
 
 function renderReports() {
   const V = rpScope(), k = S.rp;
   const ms = []; for (let m = 1; m <= V.lastM; m++) ms.push(m);
   const sel = (key, val) => `<select id="rp-${key}" data-rp="${key}">${ms.map(m => `<option value="${m}"${m === val ? ' selected' : ''}>${C.MONTHS[m - 1]}</option>`).join('')}</select>`;
-  const stSeg = `<div class="seg" role="group">${[['', 'LCA and PFO'], ['LCA', 'LCA'], ['PFO', 'PFO']].map(([v, l]) => `<button data-act="rp-st" data-v="${v}" aria-pressed="${k.st === v}">${l}</button>`).join('')}</div>`;
+  const stSeg = `<div class="seg" role="group">${stOptions().map(([v, l]) => `<button data-act="rp-st" data-v="${v}" aria-pressed="${k.st === v}">${l}</button>`).join('')}</div>`;
   const tySeg = `<div class="seg" role="group">${[['', 'Permanent and seasonal'], ...RP_TYPES].map(([v, l]) => `<button data-act="rp-ty" data-v="${v}" aria-pressed="${(k.ty || '') === v}">${l}</button>`).join('')}</div>`;
   const bar = `<div class="panel filters-in rp-bar">
     <div class="fg"><span class="fl">Report</span><div class="seg" role="group"><button aria-pressed="true">Leavers</button></div></div>
@@ -4978,33 +5056,35 @@ function renderReports() {
   else notes.push(`Sick days are one total for each group of 5 or more leavers, never per person: calendar days in the loaded sick leave files, inside each person’s employment period, matched to HR by employee code and division (${plural(V.sickLinked, 'person', 'people')} matched).`);
   notes.push('Health problems is left out of each person’s reasons; the Excel download counts it on its Reasons sheet.');
   notes.push('LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, taken from the last month they were paid; PFO is every other department. People with no payroll rows are placed by their HR station.');
+  if (hasCyprus()) notes.push('Cyprus is anyone paid through the Cyprus payroll or in the HR division CYPRUS, reported apart from PFO. Average hours a month leaves out months where someone was paid beyond their recorded hours.');
   notes.push('Seasonal staff are those whose employment ended with ΛΗΞΗ ΣΥΜΒΑΣΗΣ (contract ended); everyone else is counted as permanent.');
-  const stations = k.st ? [k.st] : ['LCA', 'PFO'];
+  if (k.st && !rpStations().includes(k.st)) k.st = '';
+  const stations = k.st ? [k.st] : rpStations();
   const types = k.ty ? [k.ty] : RP_TYPES.map(t => t[0]);
   const shownN = V.rows.filter(r => (!k.st || r.stn.st === k.st) && (!k.ty || r.ty === k.ty)).length;
   const nSeas = V.rows.filter(r => r.ty === 'seasonal').length;
   const range = k.from === k.to ? C.MONTHS[k.from - 1] : C.MONTHS[k.from - 1] + ' to ' + C.MONTHS[k.to - 1];
-  return head('Reports', `Leavers report, ${esc(range)} ${V.y}: ${plural(V.rows.length, 'person', 'people')} left (${fmt(V.rows.length - nSeas)} permanent, ${fmt(nSeas)} seasonal). Moves between AS and BX are not departures, and the employment period runs across them.`,
+  return head('Reports', `Leavers report, ${esc(range)} ${V.y}: ${plural(V.rows.length, 'person', 'people')} left (${fmt(V.rows.length - nSeas)} permanent, ${fmt(nSeas)} seasonal). Moves between companies are not departures, and the employment period runs across them.`,
       `<div class="head-acts"><button class="btn primary" data-act="rp-xlsx" ${shownN ? '' : 'disabled'}>Download Excel</button>${S.anon ? '' : `<button class="btn" data-act="rp-xlsx-anon" ${shownN ? '' : 'disabled'} title="No names, codes, Α.Κ.Α., departments, notes or reasons per person; dates as months; reasons counted on their own sheet">Excel, names hidden</button>`}<button class="btn" data-act="rp-csv" ${shownN ? '' : 'disabled'}>Download CSV</button></div>`)
     + bar + stations.flatMap(st => types.map(ty => rpStationPanel(V, st, ty))).join('')
     + `<div class="note info">${ICON.info}<span>${notes.map(esc).join(' ')} See ${PRIVACY_LINK}.</span></div>`;
 }
 
-const RP_HEAD = ['Station', 'Staff type', 'Employee', 'Codes', 'Α.Κ.Α.', 'Department', 'Employment start', 'Last day', 'Employment (years)', 'Hours worked', 'AS hours', 'BX hours', 'Months with hours', 'Average hours per month', 'How it ended', 'Reason for leaving', 'Note', 'ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ'];
+const RP_HEAD = ['Station', 'Staff type', 'Employee', 'Codes', 'Α.Κ.Α.', 'Department', 'Employment start', 'Last day', 'Employment (years)', 'Hours worked', 'AS hours', 'BX hours', 'Cyprus hours', 'Months with hours', 'Average hours per month', 'How it ended', 'Reason for leaving', 'Note', 'ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ'];
 // Names hidden: these columns are left out altogether; reasons are counted on the Reasons sheet instead.
 // Sick days are never per person (24 November 2026), only a total for each group of SMALL_N or more.
 const RP_ANON_DROP = new Set(['Codes', 'Α.Κ.Α.', 'Department', 'Reason for leaving', 'Note', 'ΚΑΤΗΓΟΡΙΕΣ ΑΠΟΧΩΡΗΣΕΩΝ']);
 function rpLine(r, iso) {
   const d = v => v == null ? '' : iso ? exportDay(v) : fmtDMY(v);
-  return [r.stn.st, rpTypeLabel(r.ty), r.p.name, r.p.codeList.map(c => c.code).join(' / '), r.p.aka || '', r.stn.dept || '',
+  return [ST_LABEL[r.stn.st] || r.stn.st, rpTypeLabel(r.ty), r.p.name, r.p.codeList.map(c => c.code).join(' / '), r.p.aka || '', r.stn.dept || '',
     d(r.start), d(r.end), r.dur != null ? +(r.dur / 365.25).toFixed(S.anon ? 1 : 2) : '',
-    +r.tot.toFixed(2), +r.asH.toFixed(2), +r.bxH.toFixed(2), r.worked, r.worked ? +(r.tot / r.worked).toFixed(2) : '',
+    +r.tot.toFixed(2), +r.asH.toFixed(2), +r.bxH.toFixed(2), +r.cyH.toFixed(2), r.worked, r.avgH != null ? +r.avgH.toFixed(2) : '',
     M_.KIND_LABEL[r.ev.kind] || r.ex.logos || '', r.reasons.join('; '), r.ex.note || '', r.ex.category || ''];
 }
 const rpRange = (V, k) => k.from === k.to ? C.MONTHS[k.from - 1] + ' ' + V.y : C.MONTHS[k.from - 1] + ' to ' + C.MONTHS[k.to - 1] + ' ' + V.y;
-const rpFile = (V, k, ext) => 'leavers-report-' + V.y + '-' + C.MON[k.from - 1].toLowerCase() + (k.to !== k.from ? '-' + C.MON[k.to - 1].toLowerCase() : '') + '-' + (k.st || 'lca-pfo').toLowerCase() + (k.ty ? '-' + k.ty : '') + (S.anon ? '-names-hidden' : '') + '.' + ext;
+const rpFile = (V, k, ext) => 'leavers-report-' + V.y + '-' + C.MON[k.from - 1].toLowerCase() + (k.to !== k.from ? '-' + C.MON[k.to - 1].toLowerCase() : '') + '-' + (k.st || (hasCyprus() ? 'all-stations' : 'lca-pfo')).toLowerCase() + (k.ty ? '-' + k.ty : '') + (S.anon ? '-names-hidden' : '') + '.' + ext;
 // positions of RP_HEAD to write: names hidden leaves out RP_ANON_DROP, and `also` leaves out more
-const rpKeep = (also = []) => RP_HEAD.map((h, i) => (S.anon && RP_ANON_DROP.has(h)) || also.includes(h) ? -1 : i).filter(i => i >= 0);
+const rpKeep = (also = []) => { if (!hasCyprus()) also = [...also, 'Cyprus hours']; return RP_HEAD.map((h, i) => (S.anon && RP_ANON_DROP.has(h)) || also.includes(h) ? -1 : i).filter(i => i >= 0); };
 function csvReport() {
   const V = rpScope(), k = S.rp, keep = rpKeep(), at = keep.indexOf(RP_HEAD.indexOf('Employee'));
   let seq = 0;   // names hidden: people are simply numbered down the report, Employee 1, 2, 3 …
@@ -5016,9 +5096,9 @@ function csvReport() {
 // counted only for a group of SMALL_N or more leavers; with names hidden, counts from 1 to 4 show as <5.
 function rpReasonsSheet(V, k) {
   const groups = [];
-  for (const st of (k.st ? [k.st] : ['LCA', 'PFO'])) for (const ty of (k.ty ? [k.ty] : RP_TYPES.map(t => t[0]))) {
+  for (const st of (k.st ? [k.st] : rpStations())) for (const ty of (k.ty ? [k.ty] : RP_TYPES.map(t => t[0]))) {
     const rows = V.rows.filter(r => r.stn.st === st && r.ty === ty);
-    groups.push({ label: st + ' ' + rpTypeLabel(ty).toLowerCase(), n: rows.length, t: reasonTally(rows.map(r => r.ex.reasons)) });
+    groups.push({ label: ST_LABEL[st] + ' ' + rpTypeLabel(ty).toLowerCase(), n: rows.length, t: reasonTally(rows.map(r => r.ex.reasons)) });
   }
   const used = Object.keys(M_.REASONS).map(Number).filter(n => HEALTH_REASONS.has(n) || groups.some(g => g.t.count[n]));
   const cell = (g, n) => !g.n ? '' : HEALTH_REASONS.has(n) && !g.t.health ? 'Not shown' : shareCount(g.t.count[n] || 0);
@@ -5032,15 +5112,15 @@ async function buildReportXlsx() {
   const V = rpScope(), k = S.rp, wb = xlWorkbook();
   const keep = rpKeep(['Station', 'Staff type', 'Α.Κ.Α.']), head = keep.map(i => RP_HEAD[i]), at = head.indexOf('Employee');   // Α.Κ.Α. is never in the Excel
   let seq = 0;   // names hidden: people are simply numbered down the report, Employee 1, 2, 3 …
-  for (const st of (k.st ? [k.st] : ['LCA', 'PFO'])) for (const ty of (k.ty ? [k.ty] : RP_TYPES.map(t => t[0]))) {
+  for (const st of (k.st ? [k.st] : rpStations())) for (const ty of (k.ty ? [k.ty] : RP_TYPES.map(t => t[0]))) {
     const rows = V.rows.filter(r => r.stn.st === st && r.ty === ty);
     const tl = rpTypeLabel(ty);
     const sum = f => +rows.reduce((t, r) => t + (f(r) || 0), 0).toFixed(2);
     const data = rows.map(r => { const line = rpLine(r, true), row = keep.map(i => line[i]); if (S.anon) row[at] = 'Employee ' + (++seq); return row; });
-    if (rows.length) { const tot = { 'Employee': 'Total', 'Hours worked': sum(r => r.tot), 'AS hours': sum(r => r.asH), 'BX hours': sum(r => r.bxH) }; data.push(head.map(h => h in tot ? tot[h] : '')); }
+    if (rows.length) { const tot = { 'Employee': 'Total', 'Hours worked': sum(r => r.tot), 'AS hours': sum(r => r.asH), 'BX hours': sum(r => r.bxH), 'Cyprus hours': sum(r => r.cyH) }; data.push(head.map(h => h in tot ? tot[h] : '')); }
     const sickTxt = V.hasSick && rows.length >= SMALL_N ? ' ' + plural(sum(r => r.sickDays), 'sick day') + ' in total.' : '';
-    xlAddSheet(wb, { name: st + ' ' + tl, title: 'Leavers report: ' + st + ', ' + tl.toLowerCase() + ' staff, ' + rpRange(V, k), subtitle: plural(rows.length, 'leaver') + (S.anon ? ', names hidden' : '') + '.' + sickTxt + ' Created ' + new Date().toLocaleDateString('en-GB') + '.',
-      header: head, rows: data, total: rows.length > 0, freeze: 1, tab: st === 'PFO' ? 'FFC11E26' : XL_NAVY });
+    xlAddSheet(wb, { name: ST_LABEL[st] + ' ' + tl, title: 'Leavers report: ' + ST_LABEL[st] + ', ' + tl.toLowerCase() + ' staff, ' + rpRange(V, k), subtitle: plural(rows.length, 'leaver') + (S.anon ? ', names hidden' : '') + '.' + sickTxt + ' Created ' + new Date().toLocaleDateString('en-GB') + '.',
+      header: head, rows: data, total: rows.length > 0, freeze: 1, tab: st === 'PFO' ? 'FFC11E26' : st === 'CY' ? 'FF8E44AD' : XL_NAVY });
   }
   const R = rpReasonsSheet(V, k);
   xlAddSheet(wb, { name: 'Reasons', title: 'Reasons for leaving, ' + rpRange(V, k), subtitle: 'Numbered reasons from the exit form; a person can give more than one. Health problems is counted only for a group of 5 or more leavers, and where it is not shown, people who gave only that reason count under No reason shown' + (S.anon ? '. Counts from 1 to 4 show as <5' : '') + '.',
@@ -5115,6 +5195,9 @@ function renderPrivacy() {
       <li><b>Names hidden:</b> notes are now hidden in the leavers report too, and downloads use months for dates, age bands and no nationality, as above.</li>
       <li><b>Saved views</b> no longer keep the search box text. Views saved before this change are cleaned the first time they load.</li>
       <li><b>Overview:</b> the Top people and Busiest departments rankings are gone. The tab shows general figures only: the month in focus, hours per month, and a By month table of hours, people paid, hours per person and cost.</li>
+      <li><b>Manpower:</b> each division is one row with its totals, collapsed until you open it.</li>
+      <li><b>Overtime:</b> expected hours use every day of the week, with hours a week for each shift length (12 h shifts: 42 h, from 2 days on, 2 days off).</li>
+      <li><b>Cyprus payroll:</b> files named CY01 … CY12 are read as a third company, shown as Cyprus. Where someone was paid more than their recorded hours explain (pay as extra rather than by the hour), that month keeps its hours as recorded but is left out of every average and comparison of hours. Cyprus has its own group in Reports and Leavers, apart from PFO, and isn’t part of Overtime, since Cyprus staff have no standard shift.</li>
     </ul>`);
   const outside = sec('Outside the tool', `
     <p>Some of what makes this use of HR data sound can’t be built into a page. Worth settling with whoever handles data protection at ICTS:</p>
@@ -5285,12 +5368,12 @@ function renderFiles() {
   const pfCount = Object.keys(S.payroll).length;
   const range = cov.lo ? (cov.lo === cov.hi ? C.MONTHS[cov.lo - 1] : C.MON[cov.lo - 1] + '–' + C.MON[cov.hi - 1]) + ' ' + S.year : '';
   const summary = pfCount
-    ? `${plural(m.payrollCount, 'person', 'people')} on payroll, ${fmt(m.both)} of them paid by both AS and BX. ${fmtH(m.hours)} hours across ${plural(pfCount, 'file')}, ${range}.` +
+    ? `${plural(m.payrollCount, 'person', 'people')} on payroll, ${fmt(m.both)} of them paid by more than one company. ${fmtH(m.hours)} hours across ${plural(pfCount, 'file')}, ${range}.` +
       (m.hasHR ? ` ${fmt(m.matched)} match an HR record and ${fmt(m.noHR)} don’t.` : '')
     : 'No payroll files have been read yet.';
 
   // table rows
-  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : f.kind === 'sick' ? 5 : f.kind === 'shifts' ? 6 : 7;
+  const order = f => f.kind === 'payroll' || f.kind === 'payroll-unnamed' ? (f.company === 'CY' ? 2.5 : f.company === 'BX' ? 2 : 1) : f.kind === 'hr' ? 3 : f.kind === 'manpower' ? 4 : f.kind === 'sick' ? 5 : f.kind === 'shifts' ? 6 : 7;
   const files = [...S.files].sort((a, b) => order(a) - order(b) || (a.month || 0) - (b.month || 0) || a.id - b.id);
   let last = 0;
   const rows = files.map(f => {
@@ -5299,7 +5382,7 @@ function renderFiles() {
     let readAs = '', rowsTxt = '', parsed = '', totals = '', check = '';
     if (f.kind === 'payroll' && f.status !== 'pending') {
       const p = S.payroll[f.company + '-' + f.month];
-      readAs = `<span class="co ${f.company.toLowerCase()}">${f.company}</span>${C.MONTHS[f.month - 1]}`;
+      readAs = `<span class="co ${f.company.toLowerCase()}">${f.company}</span>${C.MONTHS[f.month - 1]}${M_.EXTRA_CHECK.has(f.company) && p && p.fileId === f.id ? `<div class="small muted">${p.payCheck ? plural(MD() ? MD().people.filter(q => q.rows.some(r => r.co === f.company && r.m === f.month && r.xe)).length : 0, 'person', 'people') + ' paid beyond hours' : 'pay can’t be checked'}</div>` : ''}`;
       if (p && p.fileId === f.id) {
         rowsTxt = fmt(p.rows.length); parsed = fmtH(p.parsedHours);
         totals = p.totalsHours == null ? '–' : fmtH(p.totalsHours);
@@ -5348,7 +5431,7 @@ function renderFiles() {
         <label class="sr" for="pm-${f.id}">Month</label>
         <select id="pm-${f.id}"><option value="">Month…</option>${C.MONTHS.map((mn, i) => `<option value="${i + 1}"${g.month === i + 1 ? ' selected' : ''}>${mn}</option>`).join('')}</select>
         <label class="sr" for="pc-${f.id}">Company</label>
-        <select id="pc-${f.id}"><option value="">Company…</option><option${g.company === 'AS' ? ' selected' : ''}>AS</option><option${g.company === 'BX' ? ' selected' : ''}>BX</option></select>
+        <select id="pc-${f.id}"><option value="">Company…</option><option${g.company === 'AS' ? ' selected' : ''}>AS</option><option${g.company === 'BX' ? ' selected' : ''}>BX</option><option value="CY"${g.company === 'CY' ? ' selected' : ''}>Cyprus</option></select>
         <button class="btn sm" data-act="resolve" data-id="${f.id}">Read this file</button>
         <button class="btn ghost sm" data-act="remove" data-id="${f.id}">Remove</button>
       </div>
