@@ -1495,7 +1495,9 @@ if (typeof module !== 'undefined') module.exports = root.Core;
 'use strict';
 const C = root.Core;
 
-const DIV_CO = { AIRPORTS: 'AS', BORDER: 'BX', CYPRUS: 'CY' };
+const DIV_CO = { AIRPORTS: 'AS', BORDER: 'BX' };
+// The Cyprus company is everyone whose employee code starts with 20, whatever their division (24 November 2026)
+const isCyCode = c => String(c == null ? '' : c).trim().replace(/^0+/, '').startsWith('20');
 // Pay beyond the recorded hours (24 November 2026). In the Cyprus payroll some people are paid partly as
 // "extra" rather than by the hour: a wage difference for where they worked, or a fixed wage plus extra for
 // specific work. Their hours then don't show the time behind their pay, so a month is marked "paid beyond
@@ -1580,7 +1582,7 @@ function derivePerson(p, asOf) {
   for (const r of [...p.hireRows, ...exits]) {
     if (!r.amKey) continue;
     const k = r.amKey + '|' + r.division;
-    if (!seen.has(k)) { seen.add(k); codes.push({ amKey: r.amKey, am: r.am, division: r.division, company: DIV_CO[r.division] || '' }); }
+    if (!seen.has(k)) { seen.add(k); codes.push({ amKey: r.amKey, am: r.am, division: r.division, company: isCyCode(r.am || r.amKey) ? 'CY' : (DIV_CO[r.division] || '') }); }
   }
 
   const postings = [];
@@ -1753,7 +1755,7 @@ function build(S) {
   };
 }
 
-root.Model = { build, employedAt, postingAt, REASONS, KIND_LABEL, STATUS_LABEL, LEFT_KINDS, DIV_CO, EXTRA_CHECK, MONTHLY_RATE, EXTRA_MIN, EXTRA_SHARE };
+root.Model = { build, employedAt, postingAt, REASONS, KIND_LABEL, STATUS_LABEL, LEFT_KINDS, DIV_CO, EXTRA_CHECK, MONTHLY_RATE, EXTRA_MIN, EXTRA_SHARE, isCyCode };
 if (typeof module !== 'undefined') module.exports = root.Model;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -2054,6 +2056,8 @@ function warnings() {
     const p = S.payroll[k], f = S.files.find(x => x.id === p.fileId), label = f ? f.name : k;
     if (p.totalsHours == null) out.push(['warn', label + ' has no Totals row, so its hours could not be checked.']);
     else if (Math.abs(p.parsedHours - p.totalsHours) >= 0.01) out.push(['warn', label + ': the employee rows add up to ' + fmtH(p.parsedHours) + ' hours but the Totals row says ' + fmtH(p.totalsHours) + ' (' + (p.parsedHours > p.totalsHours ? '+' : '') + fmtH(p.parsedHours - p.totalsHours) + '). A row may have been added or removed after the totals were worked out.']);
+    { const off = p.rows.filter(r => r.code && (p.company === 'CY') !== M_.isCyCode(r.code)).length;   // only Cyprus codes start with 20
+      if (off) out.push(['warn', label + ': ' + plural(off, 'row') + (p.company === 'CY' ? ' with a code that doesn’t start with 20, though every Cyprus code does.' : ' with a code starting with 20, which is a Cyprus code. Check the file is the right company.')]); }
     if (M_.EXTRA_CHECK.has(p.company) && !p.payCheck) out.push(['bad', label + ' has neither Μικτ. αποδ. nor ΓΕΣΥ & Λοιπά εργοδ., so pay can’t be checked against hours. Anyone paid as extra in it will look like they worked fewer hours.']);
     const miss = p.missing.filter(x => ['aka', 'dept', 'rate', 'cost', 'surname', 'name'].includes(x));
     if (miss.includes('aka')) out.push(['warn', label + ' has no Α.Κ.Α. column. People in it can\'t be linked to their other company or to the HR workbook by Α.Κ.Α.']);
@@ -3484,7 +3488,7 @@ const LV_TABS = [['list', 'By month'], ['trends', 'Trends']];
 // LCA / PFO choice, shared by both Leavers views
 const LV_ST = [['', 'LCA and PFO'], ['LCA', 'LCA'], ['PFO', 'PFO']];
 const lvStSeg = () => `<div class="fg"><span class="fl">Station</span><div class="seg" role="group" aria-label="Station">${stOptions().map(([v, l]) => `<button data-act="lv-st" data-v="${v}" aria-pressed="${(S.lvSt || '') === v}">${l}</button>`).join('')}</div></div>`;
-const LV_ST_NOTE = 'LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, from the last month a person was paid; PFO is every other department. People with no payroll rows are placed by their HR station. Cyprus is anyone paid through the Cyprus payroll or in the HR division CYPRUS, kept apart from PFO.';
+const LV_ST_NOTE = 'LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, from the last month a person was paid; PFO is every other department. People with no payroll rows are placed by their HR station. Cyprus is the Cyprus company, everyone whose employee code starts with 20, kept apart from PFO.';
 const lvTySeg = () => `<div class="fg"><span class="fl">Staff</span><div class="seg" role="group" aria-label="Staff type">${[['', 'Permanent and seasonal'], ...RP_TYPES].map(([v, l]) => `<button data-act="lv-ty" data-v="${v}" aria-pressed="${(S.lvTy || '') === v}">${l}</button>`).join('')}</div></div>`;
 const LV_TY_NOTE = 'Seasonal staff are those whose employment ended with ΛΗΞΗ ΣΥΜΒΑΣΗΣ (contract ended); everyone else is counted as permanent.';
 const lvStLabel = () => (S.lvTy ? ' (' + rpTypeLabel(S.lvTy).toLowerCase() + ' staff)' : '') + (S.lvSt ? ' under ' + (ST_LABEL[S.lvSt] || S.lvSt) : '');
@@ -3511,7 +3515,7 @@ function lvTrendData(div, st, ty) {
       if (!M_.employedAt(h, d)) return;
       const po = M_.postingAt(h, d), dv = po.division || h.division;
       if (div && dv !== div) return;
-      if (st && (dv === 'CYPRUS' ? 'CY' : paid ? paid.st : hrStationLP(po.station || h.station || '')) !== st) return;
+      if (st && (paid ? paid.st : cyprusByCode(p) ? 'CY' : hrStationLP(po.station || h.station || '')) !== st) return;
       hcAll[k]++;
       const sn = po.station || '(no station)';
       (hcSt[sn] || (hcSt[sn] = new Array(N + 1).fill(0)))[k]++;
@@ -4953,13 +4957,19 @@ function hrStationLP(raw) {
 function leaverStation(p, ev) {
   const paid = paidStationLP(p);
   const raw = (ev && ev.station) || (p.hr && p.hr.station) || '';
-  if (((ev && ev.division) || (p.hr && p.hr.division)) === 'CYPRUS') return { st: 'CY', dept: paid ? paid.dept : raw, src: paid ? 'payroll' : 'hr' };
-  if (paid) return { st: paid.st, dept: paid.dept, src: 'payroll' };
+  if (paid) return { st: paid.st, dept: paid.dept, src: 'payroll' };   // last paid through the Cyprus payroll → Cyprus
+  if (cyprusByCode(p, ev)) return { st: 'CY', dept: raw, src: 'hr' };
   return { st: hrStationLP(raw), dept: raw, src: 'hr' };
 }
-// Cyprus (24 November 2026): anyone last paid through the Cyprus payroll, or in the HR division CYPRUS. Separate from PFO.
+// Cyprus (24 November 2026): the Cyprus company, whose employee codes start with 20. Separate from PFO.
+// With payroll rows, the company they were last paid by decides; without, their code on the exit row, or any HR code.
+function cyprusByCode(p, ev) {
+  const x = ev && ev.exit;
+  if (x && (x.am || x.amKey)) return M_.isCyCode(x.am || x.amKey);
+  return !!(p.hr && p.hr.codes.some(c => M_.isCyCode(c.am || c.amKey)));
+}
 const ST_LABEL = { LCA: 'LCA', PFO: 'PFO', CY: 'Cyprus' };
-const hasCyprus = () => { const md = MD(); return !!md && (md.period.CY.length > 0 || md.people.some(p => p.hr && p.hr.division === 'CYPRUS')); };
+const hasCyprus = () => { const md = MD(); return !!md && (md.period.CY.length > 0 || md.people.some(p => !p.onPayroll && cyprusByCode(p))); };
 const rpStations = () => ['LCA', 'PFO', ...(hasCyprus() ? ['CY'] : [])];
 const stOptions = () => [['', hasCyprus() ? 'All stations' : 'LCA and PFO'], ...rpStations().map(s => [s, ST_LABEL[s]])];
 
@@ -5056,7 +5066,7 @@ function renderReports() {
   else notes.push(`Sick days are one total for each group of 5 or more leavers, never per person: calendar days in the loaded sick leave files, inside each person’s employment period, matched to HR by employee code and division (${plural(V.sickLinked, 'person', 'people')} matched).`);
   notes.push('Health problems is left out of each person’s reasons; the Excel download counts it on its Reasons sheet.');
   notes.push('LCA is the departments 90 LARNACA AIRPORTS, ΛΑΡΝΑΚΑ, 408 OTHER, LAR - GR, 9000 LCA NON DCA, CRUISES, LARNACA DESK, LAR BX SPV and 403 ΕΡΓΑ CYPRUS, taken from the last month they were paid; PFO is every other department. People with no payroll rows are placed by their HR station.');
-  if (hasCyprus()) notes.push('Cyprus is anyone paid through the Cyprus payroll or in the HR division CYPRUS, reported apart from PFO. Average hours a month leaves out months where someone was paid beyond their recorded hours.');
+  if (hasCyprus()) notes.push('Cyprus is the Cyprus company, everyone whose employee code starts with 20, reported apart from PFO. Average hours a month leaves out months where someone was paid beyond their recorded hours.');
   notes.push('Seasonal staff are those whose employment ended with ΛΗΞΗ ΣΥΜΒΑΣΗΣ (contract ended); everyone else is counted as permanent.');
   if (k.st && !rpStations().includes(k.st)) k.st = '';
   const stations = k.st ? [k.st] : rpStations();
@@ -5197,7 +5207,7 @@ function renderPrivacy() {
       <li><b>Overview:</b> the Top people and Busiest departments rankings are gone. The tab shows general figures only: the month in focus, hours per month, and a By month table of hours, people paid, hours per person and cost.</li>
       <li><b>Manpower:</b> each division is one row with its totals, collapsed until you open it.</li>
       <li><b>Overtime:</b> expected hours use every day of the week, with hours a week for each shift length (12 h shifts: 42 h, from 2 days on, 2 days off).</li>
-      <li><b>Cyprus payroll:</b> files named CY01 … CY12 are read as a third company, shown as Cyprus. Where someone was paid more than their recorded hours explain (pay as extra rather than by the hour), that month keeps its hours as recorded but is left out of every average and comparison of hours. Cyprus has its own group in Reports and Leavers, apart from PFO, and isn’t part of Overtime, since Cyprus staff have no standard shift.</li>
+      <li><b>Cyprus payroll:</b> files named CY01 … CY12 are read as a third company, shown as Cyprus. Where someone was paid more than their recorded hours explain (pay as extra rather than by the hour), that month keeps its hours as recorded but is left out of every average and comparison of hours. Cyprus (everyone whose employee code starts with 20) has its own group in Reports and Leavers, apart from PFO, and isn’t part of Overtime, since Cyprus staff have no standard shift.</li>
     </ul>`);
   const outside = sec('Outside the tool', `
     <p>Some of what makes this use of HR data sound can’t be built into a page. Worth settling with whoever handles data protection at ICTS:</p>
